@@ -27,4 +27,4 @@ jobs:
 
       # Step 4: Run the feed parser script
       - name: Run feed parser
-        run: npx tsx src/feedParser.ts
+        run: npx tsx actions/feedParser.ts
