@@ -20,16 +20,9 @@ export default function NavBar() {
       >
         <div className="mx-5 flex h-16 w-full max-w-screen-xl items-center justify-between">
           <Link href="/" className="flex items-center font-display text-2xl">
-            <Image
-              src="/logo.png"
-              alt="Precedent logo"
-              width="30"
-              height="30"
-              className="mr-2 rounded-sm"
-            ></Image>
-            <p>Precedent</p>
+            <p>mapping-news</p>
           </Link>
-          <SignedOut>
+          {/* <SignedOut>
             <SignInButton mode="modal">
               <button className="rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-colors hover:bg-white hover:text-black">
                 Sign In
@@ -46,7 +39,7 @@ export default function NavBar() {
                 />
               </UserButton.MenuItems>
             </UserButton>
-          </SignedIn>
+          </SignedIn> */}
         </div>
       </div>
     </>
