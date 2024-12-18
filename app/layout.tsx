@@ -8,8 +8,8 @@ import Navbar from "@/components/layout/navbar";
 import { ClerkProvider } from "@clerk/nextjs";
 
 export const metadata = {
-  title: "mapping-news",
-  description: "a news-mapping project.",
+  title: "mapping.news",
+  description: "a news-mapping project",
   metadataBase: new URL("https://mapping.news"),
 };
 

@@ -20,7 +20,7 @@ export default function NavBar() {
       >
         <div className="mx-5 flex h-16 w-full max-w-screen-xl items-center justify-between">
           <Link href="/" className="flex items-center font-display text-2xl">
-            <p>mapping-news</p>
+            <p>mapping.news</p>
           </Link>
           {/* <SignedOut>
             <SignInButton mode="modal">
