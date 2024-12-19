@@ -5,3 +5,7 @@
 .link {
   @apply font-semibold text-gray-600 underline-offset-4 transition-colors hover:underline;
 }
+
+.mapboxgl-canvas {
+  position: relative !important;
+}
