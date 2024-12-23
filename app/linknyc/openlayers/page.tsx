@@ -1,12 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Map, View } from "ol";
 import TileLayer from "ol/layer/Tile";
-import OSM from "ol/source/OSM";
+import OSM from "ol/source/StadiaMaps";
 import VectorSource from "ol/source/Vector";
 import GeoJSON from "ol/format/GeoJSON";
 import VectorLayer from "ol/layer/Vector";
+import Style from "ol/style/Style";
+import Stroke from "ol/style/Stroke";
+import Circle from "ol/style/Circle";
 
 export default function Openlayers() {
   const [map, setMap] = useState();
@@ -19,14 +22,33 @@ export default function Openlayers() {
     format: new GeoJSON(),
   });
 
+  const dotStyle = useCallback(
+    (color: string) =>
+      new Style({
+        image: new Circle({
+          stroke: new Stroke({
+            color: color,
+            width: 1.5,
+          }),
+          radius: 3,
+        }),
+      }),
+    [],
+  );
+
   const vectorLayer = new VectorLayer({
     source: vectorSource,
+    style: (feature, _) => {
+      const color =
+        feature.get("Planned Kiosk Type") === "Link1.0" ? "blue" : "red";
+      return dotStyle(color);
+    },
   });
 
   useEffect(() => {
     const osmLayer = new TileLayer({
       preload: Infinity,
-      source: new OSM(),
+      source: new OSM({ layer: "alidade_smooth", retina: true }),
     });
 
     const map = new Map({
@@ -38,14 +60,14 @@ export default function Openlayers() {
         projection: "EPSG:4326",
       }),
     });
+
     return () => map.setTarget(undefined);
   }, []);
   return (
-    <div className="flex h-full min-h-[calc(100vh-6rem)] w-full flex-col items-center justify-center pt-16">
+    <div className="flex h-full min-h-[calc(100vh-6rem)] w-full flex-col items-center justify-center py-8">
       <div
-        style={{ height: "100%", width: "100%" }}
         ref={mapElement as React.RefObject<HTMLDivElement>}
-        className="map-container"
+        className="map-container h-full w-full"
       />
     </div>
   );
