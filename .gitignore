@@ -18,6 +18,7 @@
 # misc
 .DS_Store
 *.pem
+cache.json
 
 # debug
 npm-debug.log*
@@ -38,3 +39,8 @@ next-env.d.ts
 
 # misc
 .vscode
+
+# python
+
+/bin/
+/lib/

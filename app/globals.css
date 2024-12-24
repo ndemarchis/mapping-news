@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 .link {
-  @apply font-semibold text-gray-600 underline-offset-4 transition-colors hover:underline;
+  @apply font-semibold text-gray-600 underline-offset-2 transition-colors hover:underline;
 }
 
 .mapboxgl-canvas {
