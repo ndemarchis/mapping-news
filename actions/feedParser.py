@@ -4,9 +4,13 @@ import json
 import asyncio
 import aiohttp
 import feedparser
+import os
 from newspaper import Article
+from pydantic import BaseModel
+from openai import OpenAI
+import pandas as pd
 
-FEED_FILE = Path(__file__).resolve().parent / "../public/feeds/feeds.txt"
+FEED_FILE = Path(__file__).resolve().parent / "../public/feeds/feeds.csv"
 CACHE_FILE = Path(__file__).resolve().parent / "../cache.json"
 FULL_ARTICLE_CHAR_THRESHOLD = 250
 
@@ -21,7 +25,14 @@ class FeedItem(TypedDict, total=False):
 
 class CustomFeedItem(TypedDict):
     item: FeedItem
-    locations: List[dict]
+    locations: List[str]
+
+class AddressArray(BaseModel):
+    locations: List[str]
+
+def read_file_csv(file_path: Path) -> pd.DataFrame:
+    df = pd.read_csv(file_path)
+    return df
 
 def read_file(file_path: Path) -> str:
     with open(file_path, "r", encoding="utf-8") as f:
@@ -38,8 +49,8 @@ async def load_feeds() -> List[str]:
     """
     Get the list of RSS feeds from the file.
     """
-    data = read_file(FEED_FILE)
-    return [line.strip() for line in data.splitlines() if line.strip()]
+    data = read_file_csv(FEED_FILE)
+    return data["url"].tolist()
 
 async def load_seen_articles() -> Set[str]:
     # TODO: get data in from the server
@@ -61,7 +72,8 @@ def feed_item_standardizer(item: dict) -> FeedItem:
         "pubDate": item.get("published"),
         "id": item.get("id"),
         "author": item.get("author"),
-        "fullText": len(item.get("summary", "")) > FULL_ARTICLE_CHAR_THRESHOLD,
+        "fullText": False,
+        # "fullText": len(item.get("summary", "")) > FULL_ARTICLE_CHAR_THRESHOLD,
     }
 
 async def parse_feed(url: str) -> List[FeedItem]:
@@ -119,11 +131,32 @@ async def add_articles_full_content(articles: List[FeedItem]) -> List[FeedItem]:
 
     return await asyncio.gather(*(process_article(article) for article in articles))
 
-async def add_article_location(article: FeedItem) -> CustomFeedItem:
+def add_article_locations(articles: List[FeedItem]) -> List[CustomFeedItem]:
+    """
+    For each article, extract location information.
+    """
+    return [add_article_location(article) for article in articles]
+
+def add_article_location(article: FeedItem) -> CustomFeedItem:
     # TODO: Either add API or spaCy to get locations
+
+    key = os.getenv("OPENAI_API_KEY")
+    client = OpenAI(api_key=key)
+
+    completion = client.beta.chat.completions.parse(
+        model="gpt-4o-mini-2024-07-18",
+        messages=[
+            {"role": "system", "content": "Extract all physical addresses from the text."},
+            {"role": "user", "content": article.get("content", "")},
+        ],
+        response_format=AddressArray,
+    )
+
+    event = completion.choices[0].message.parsed
+
     return {
         "item": article,
-        "locations": []  # Example locations
+        "locations": event.locations,
     }
 
 async def main() -> None:
@@ -135,6 +168,11 @@ async def main() -> None:
                 print(f"- {article['title']} ({article['link']})")
 
             full_articles = await add_articles_full_content(new_articles)
+            new_articles_with_locations = add_article_locations(full_articles)
+            # log locations from new articles
+            for article in new_articles_with_locations:
+                print(f"Locations for {article['item']['title']}: {article['locations']}")
+
         else:
             print("No new articles found.")
     except Exception as error:

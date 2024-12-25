@@ -1,4 +1,0 @@
-https://gothamist.com/feed
-https://www.thecity.nyc/feed/
-https://nypost.com/metro/feed/
-https://www.curbed.com/feeds/full-content.rss
