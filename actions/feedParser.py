@@ -150,6 +150,12 @@ def add_article_locations(articles: List[FeedItem]) -> List[CustomFeedItem]:
     """
     return [add_article_location(article) for article in articles]
 
+def filter_parsed_locations(locations: List[str]) -> List[str]:
+    """
+    Remove locations with fewer than 3 words.
+    """
+    return [location for location in locations if len(location.split()) > 2]
+
 def add_article_location(article: FeedItem) -> CustomFeedItem:
     # TODO: Either add API or spaCy to get locations
 
@@ -169,7 +175,7 @@ def add_article_location(article: FeedItem) -> CustomFeedItem:
 
     return {
         "item": article,
-        "locations": event.locations,
+        "locations": filter_parsed_locations(event.locations),
     }
 
 def add_geocoded_locations(articles: List[CustomFeedItem]) -> List[CustomFeedItem]:
@@ -193,7 +199,7 @@ def geocode_locations(locations: List[str]) -> List[GeocodedLocation]:
     """
     return [geocode_location(location) for location in locations]
 
-def geocode_location(location: str) -> GeocodedLocation:
+def geocode_location(location: str) -> GeocodedLocation | None:
     """
     Make a request to Google Maps API to get geocoding information.
     """
@@ -207,7 +213,7 @@ def geocode_location(location: str) -> GeocodedLocation:
     response = requests.get(url, params=params)
     data = response.json()
     if response.status_code != 200 or data["status"] != "OK":
-        raise Exception(f"Error geocoding location: {location}")
+        return
     lat = data["results"][0]["geometry"]["location"]["lat"]
     lon = data["results"][0]["geometry"]["location"]["lng"]
     return {
@@ -219,7 +225,7 @@ def geocode_location(location: str) -> GeocodedLocation:
 async def main() -> None:
     try:
         new_articles = await fetch_new_articles()
-        if new_articles:
+        if new_articles: 
             print("New articles found:")
             for article in new_articles:
                 print(f"- {article['title']} ({article['link']})")
@@ -227,6 +233,9 @@ async def main() -> None:
             full_articles = await add_articles_full_content(new_articles)
             new_articles_with_locations = add_article_locations(full_articles)
             new_articles_with_geocoded_locations = add_geocoded_locations(new_articles_with_locations)
+
+            # save file as JSON
+            write_file(Path(__file__).resolve().parent / "../public/feeds/cache.json", json.dumps(new_articles_with_geocoded_locations, ensure_ascii=False))
 
         else:
             print("No new articles found.")
