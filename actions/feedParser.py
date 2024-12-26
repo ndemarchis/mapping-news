@@ -9,10 +9,15 @@ from newspaper import Article
 from pydantic import BaseModel
 from openai import OpenAI
 import pandas as pd
+import requests
 
 FEED_FILE = Path(__file__).resolve().parent / "../public/feeds/feeds.csv"
 CACHE_FILE = Path(__file__).resolve().parent / "../cache.json"
 FULL_ARTICLE_CHAR_THRESHOLD = 250
+
+class GeocodedLocation(TypedDict):
+    lat: float
+    lon: float
 
 class FeedItem(TypedDict, total=False):
     title: Optional[str]
@@ -25,10 +30,18 @@ class FeedItem(TypedDict, total=False):
 
 class CustomFeedItem(TypedDict):
     item: FeedItem
-    locations: List[str]
+    locations: Optional[List[str]]
+    geocoded_locations: Optional[List[GeocodedLocation]]
 
 class AddressArray(BaseModel):
     locations: List[str]
+
+class FeedParser:
+    def __init__(self):
+        self.articles = []
+        self.custom_articles = []
+        self.api_key = os.getenv("OPENAI_API_KEY")
+        self.client = OpenAI(api_key=self.api_key)
 
 def read_file_csv(file_path: Path) -> pd.DataFrame:
     df = pd.read_csv(file_path)
@@ -159,6 +172,50 @@ def add_article_location(article: FeedItem) -> CustomFeedItem:
         "locations": event.locations,
     }
 
+def add_geocoded_locations(articles: List[CustomFeedItem]) -> List[CustomFeedItem]:
+    """
+    For each article, geocode the locations.
+    """
+    return [add_geocoded_location(article) for article in articles]
+
+def add_geocoded_location(article: CustomFeedItem) -> CustomFeedItem:
+    locations = article["locations"]
+    geocoded_locations = geocode_locations(locations)
+    return {
+        "item": article["item"],
+        "locations": locations,
+        "geocoded_locations": geocoded_locations,
+    }
+
+def geocode_locations(locations: List[str]) -> List[GeocodedLocation]:
+    """
+    For each location, make a request to Google Maps API to get geocoding information.
+    """
+    return [geocode_location(location) for location in locations]
+
+def geocode_location(location: str) -> GeocodedLocation:
+    """
+    Make a request to Google Maps API to get geocoding information.
+    """
+    key = os.getenv("GOOGLE_MAPS_API_KEY")
+    url = "https://maps.googleapis.com/maps/api/geocode/json"
+    params = {
+        "key": key,
+        "address": location,
+    }
+
+    response = requests.get(url, params=params)
+    data = response.json()
+    if response.status_code != 200 or data["status"] != "OK":
+        raise Exception(f"Error geocoding location: {location}")
+    lat = data["results"][0]["geometry"]["location"]["lat"]
+    lon = data["results"][0]["geometry"]["location"]["lng"]
+    return {
+        "lat": lat,
+        "lon": lon,
+    }
+
+
 async def main() -> None:
     try:
         new_articles = await fetch_new_articles()
@@ -169,9 +226,7 @@ async def main() -> None:
 
             full_articles = await add_articles_full_content(new_articles)
             new_articles_with_locations = add_article_locations(full_articles)
-            # log locations from new articles
-            for article in new_articles_with_locations:
-                print(f"Locations for {article['item']['title']}: {article['locations']}")
+            new_articles_with_geocoded_locations = add_geocoded_locations(new_articles_with_locations)
 
         else:
             print("No new articles found.")
