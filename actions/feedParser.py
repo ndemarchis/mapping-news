@@ -261,7 +261,7 @@ def send_to_db(articles: List[CustomFeedItem]) -> None:
     supabase = create_client(supabase_url, supabase_key)
     narrowed_articles = narrow_feed_items(articles)
 
-    supabase.table("articles_and_data").insert(narrowed_articles).execute()
+    supabase.table("articles_and_data").insert(narrowed_articles, upsert=True).execute()
 
 
 async def main() -> None:
