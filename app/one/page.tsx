@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Map, View } from "ol";
+import { Feature, Map, View } from "ol";
 import TileLayer from "ol/layer/Tile";
 import OSM from "ol/source/OSM";
 import VectorSource from "ol/source/Vector";
@@ -10,8 +10,13 @@ import VectorLayer from "ol/layer/Vector";
 import Style from "ol/style/Style";
 import Stroke from "ol/style/Stroke";
 import Circle from "ol/style/Circle";
+import Select from "ol/interaction/Select";
+import { click } from "ol/events/condition";
+import { Geometry } from "ol/geom";
 
 export default function Openlayers() {
+  const [feature, setFeature] = useState<Feature<Geometry>>();
+  const featureProperties = feature?.getProperties();
   const [map, setMap] = useState();
   const mapElement = useRef<HTMLDivElement>();
   const mapRef = useRef();
@@ -61,6 +66,18 @@ export default function Openlayers() {
       }),
     });
 
+    const selectClick = new Select({
+      condition: click,
+      // style: selectStyle,
+    });
+
+    map.addInteraction(selectClick);
+    selectClick.on("select", (e) => {
+      const features = e.selected;
+      const feature = features?.[0];
+      setFeature(feature);
+    });
+
     return () => map.setTarget(undefined);
   }, []);
 
@@ -68,8 +85,11 @@ export default function Openlayers() {
     <div className="flex h-full min-h-[calc(100vh-6rem)] w-full flex-col items-center justify-center py-8">
       <div
         ref={mapElement as React.RefObject<HTMLDivElement>}
-        className="map-container h-[1000px] w-full"
+        className="map-container h-[600px] w-full"
       />
+      <div className="z-10 flex flex-row gap-4 text-sm">
+        <p>{JSON.stringify(featureProperties, null, 2)}</p>
+      </div>
     </div>
   );
 }
