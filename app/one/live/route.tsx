@@ -3,6 +3,16 @@ import { Database } from "./database.types";
 
 type LocationType = Record<string, { lat: number; lon: number }>;
 
+export type Properties = {
+  title: string;
+  articleTitle: string | null;
+  articleLink: string | null;
+  articlePubDate: string | null;
+  articleAuthor: string | null;
+  feedName: string | null;
+  locations: string | null;
+};
+
 export async function GET() {
   const supabase = createClient<Database>(
     process.env.SUPABASE_URL || "",
@@ -38,7 +48,7 @@ export async function GET() {
               locations: Object.entries(curr.locations as LocationType)
                 .map(([locationName, _]) => locationName)
                 .join(", "),
-            },
+            } satisfies Properties,
           }),
         ),
       ],
