@@ -44,3 +44,5 @@ next-env.d.ts
 
 /bin/
 /lib/
+
+/local_cache/

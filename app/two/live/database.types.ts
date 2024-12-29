@@ -34,6 +34,36 @@ export type Database = {
   };
   public: {
     Tables: {
+      articles: {
+        Row: {
+          author: string | null;
+          created_at: string;
+          feed_name: string | null;
+          headline: string | null;
+          link: string | null;
+          pub_date: string | null;
+          uuid3: string;
+        };
+        Insert: {
+          author?: string | null;
+          created_at?: string;
+          feed_name?: string | null;
+          headline?: string | null;
+          link?: string | null;
+          pub_date?: string | null;
+          uuid3: string;
+        };
+        Update: {
+          author?: string | null;
+          created_at?: string;
+          feed_name?: string | null;
+          headline?: string | null;
+          link?: string | null;
+          pub_date?: string | null;
+          uuid3?: string;
+        };
+        Relationships: [];
+      };
       articles_and_data: {
         Row: {
           author: string | null;
@@ -61,6 +91,69 @@ export type Database = {
           locations?: Json | null;
           pub_date?: string | null;
           title?: string | null;
+        };
+        Relationships: [];
+      };
+      location_article_relations: {
+        Row: {
+          article_uuid: string | null;
+          created_at: string;
+          id: string;
+          location_name: string | null;
+          place_id: string | null;
+        };
+        Insert: {
+          article_uuid?: string | null;
+          created_at?: string;
+          id: string;
+          location_name?: string | null;
+          place_id?: string | null;
+        };
+        Update: {
+          article_uuid?: string | null;
+          created_at?: string;
+          id?: string;
+          location_name?: string | null;
+          place_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "location_article_relations_article_uuid_fkey";
+            columns: ["article_uuid"];
+            isOneToOne: false;
+            referencedRelation: "articles";
+            referencedColumns: ["uuid3"];
+          },
+          {
+            foreignKeyName: "location_article_relations_place_id_fkey";
+            columns: ["place_id"];
+            isOneToOne: false;
+            referencedRelation: "locations";
+            referencedColumns: ["place_id"];
+          },
+        ];
+      };
+      locations: {
+        Row: {
+          formatted_address: string | null;
+          lat: number | null;
+          lon: number | null;
+          place_id: string;
+          types: string[] | null;
+        };
+        Insert: {
+          formatted_address?: string | null;
+          lat?: number | null;
+          lon?: number | null;
+          place_id: string;
+          types?: string[] | null;
+        };
+        Update: {
+          formatted_address?: string | null;
+          lat?: number | null;
+          lon?: number | null;
+          place_id?: string;
+          types?: string[] | null;
         };
         Relationships: [];
       };

@@ -1,6 +1,5 @@
 name,url,minLat,minLon,maxLat,maxLon
-Gothamist,https://gothamist.com/feed,40.49,-74.27,40.90,-73.65
-The City,https://www.thecity.nyc/feed/,40.49,-74.27,40.90,-73.65
+
 New York Post,https://nypost.com/metro/feed/,40.49,-74.27,40.90,-73.65
 Curbed,https://www.curbed.com/feeds/full-content.rss,40.49,-74.27,40.90,-73.65
 NY1,https://ny1.com/services/contentfeed.nyc%7call-boroughs%7cnews.landing.rss,40.49,-74.27,40.90,-73.65

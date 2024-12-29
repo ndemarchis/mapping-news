@@ -15,7 +15,7 @@ import { click } from "ol/events/condition";
 import { Geometry } from "ol/geom";
 import Modal from "@/components/shared/modal";
 import { DialogTitle } from "@radix-ui/react-dialog";
-import { Properties } from "./live/route";
+import { Properties } from "./live/locations/route";
 import Link from "@/components/shared/link";
 
 const DateEntry = (isoDate?: string) => {
@@ -67,17 +67,12 @@ export default function Openlayers() {
     });
 
     const vectorSource = new VectorSource({
-      url: "/one/live",
+      url: "/two/live",
       format: new GeoJSON(),
     });
 
     const vectorLayer = new VectorLayer({
       source: vectorSource,
-      // style: (feature, _) => {
-      //   const color =
-      //     feature.get("Planned Kiosk Type") === "Link1.0" ? "blue" : "red";
-      //   return dotStyle(color);
-      // },
     });
 
     const map = new Map({
