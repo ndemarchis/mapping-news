@@ -18,6 +18,13 @@ import { DialogTitle } from "@radix-ui/react-dialog";
 import { Properties } from "./live/locations/route";
 import Link from "@/components/shared/link";
 import { LoadingDots } from "@/components/shared/icons";
+import { Database } from "./live/database.types";
+import ArticleLineItem from "./ArticleLineItem";
+
+type Articles = {
+  address: string;
+  articles: Database["public"]["Tables"]["articles"]["Row"][];
+} | null;
 
 const DateEntry = (isoDate?: string) => {
   if (!isoDate) return undefined;
@@ -40,9 +47,7 @@ const PublicationEntry = (
 export default function Openlayers() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedArticles, setSelectedArticles] = useState<{ articles: any[] }>(
-    { articles: [] },
-  );
+  const [selectedArticles, setSelectedArticles] = useState<Articles>(null);
 
   const [map, setMap] = useState();
   const mapElement = useRef<HTMLDivElement>();
@@ -56,14 +61,14 @@ export default function Openlayers() {
     await fetch(`/two/live/articles/${properties.place_id}`)
       .then((response) => response.json())
       .then((data) => {
-        setSelectedArticles({ articles: data });
+        setSelectedArticles({ address: properties.title, articles: data });
         setLoading(false);
       });
   };
 
   useEffect(() => {
     if (!showModal) {
-      setSelectedArticles({ articles: [] });
+      setSelectedArticles(null);
     }
   }, [showModal]);
 
@@ -130,9 +135,21 @@ export default function Openlayers() {
         setShowModal={setShowModal}
       >
         <DialogTitle>
-          <span className="font-display text-2xl font-bold">title</span>
+          <span className="font-display text-2xl font-bold">
+            {selectedArticles?.address}
+          </span>
         </DialogTitle>
-        {loading ? <LoadingDots /> : JSON.stringify(selectedArticles)}
+        {loading ? (
+          <LoadingDots />
+        ) : (
+          selectedArticles?.articles?.length && (
+            <div className="flex flex-col gap-4">
+              {selectedArticles?.articles?.map((article) => (
+                <ArticleLineItem key={article.uuid3} article={article} />
+              ))}
+            </div>
+          )
+        )}
       </Modal>
       <div className="flex h-full min-h-[calc(100vh-6rem)] w-full flex-col items-center justify-center py-8">
         <div
