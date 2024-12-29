@@ -130,20 +130,20 @@ export default function Openlayers() {
   return (
     <>
       <Modal
-        className="flex max-h-[80vh] flex-col gap-4 overflow-scroll p-8"
+        className="flex max-h-[80vh] flex-col gap-4 overflow-scroll p-4"
         showModal={showModal}
         setShowModal={setShowModal}
       >
-        <DialogTitle>
-          <span className="font-display text-2xl font-bold">
-            {selectedArticles?.address}
-          </span>
+        <DialogTitle className="p-4 font-display text-2xl font-bold">
+          {selectedArticles?.address}
         </DialogTitle>
         {loading ? (
-          <LoadingDots />
+          <div className="flex h-full w-full items-center justify-center">
+            <LoadingDots aria-label="Loading" />
+          </div>
         ) : (
           selectedArticles?.articles?.length && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
               {selectedArticles?.articles?.map((article) => (
                 <ArticleLineItem key={article.uuid3} article={article} />
               ))}
