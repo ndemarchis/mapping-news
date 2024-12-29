@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List, TypedDict, Optional, Set, Dict
 from pathlib import Path
 import json
@@ -124,6 +125,7 @@ async def fetch_new_articles() -> List[FeedItem]:
     feeds = await load_feeds()
 
     for feed in feeds:
+        print(f"0. {feed['name']} (Parsing)")
         articles = await parse_feed(feed)
         for article in articles:
             if not article.get("id"):
@@ -149,7 +151,7 @@ async def add_articles_full_content(articles: List[FeedItem]) -> List[FeedItem]:
             return article
         content = await scrap(article.get("link") or "")
 
-        print(f"- Scraping {article.get('title', '')}")
+        print(f"- 1. {article.get('title', '')} (Scraping)")
 
         # TODO: do we want to add other information here?
         article["content"] = content
@@ -169,7 +171,7 @@ def add_article_location(article: FeedItem) -> CustomFeedItem:
     key = os.getenv("OPENAI_API_KEY")
     client = OpenAI(api_key=key)
 
-    print(f"- OpenAI Extraction for {article.get('title', '')}")
+    print(f"- 2. {article.get('title', '')} (Parsing)")
 
     completion = client.beta.chat.completions.parse(
         model="gpt-4o-mini-2024-07-18",
@@ -211,6 +213,8 @@ def geocode_locations(locations: GeocodedLocations) -> GeocodedLocations:
 
     return returned_locations
 
+FILTERABLE_LOCATION_TYPES = ["political", "country", "administrative_area_level_1", "administrative_area_level_2","locality","sublocality","neighborhood","postal_code"]
+
 def geocode_location(location: str) -> GeocodedLocation | None:
     """Make a request to Google Maps API to get geocoding information."""
     key = os.getenv("GOOGLE_MAPS_API_KEY")
@@ -220,7 +224,7 @@ def geocode_location(location: str) -> GeocodedLocation | None:
         "address": location,
     }
 
-    print(f"- Locating {location}")
+    print(f"- 3. {location} (Geocoding)")
 
     response = requests.get(url, params=params)
     data = response.json()
@@ -228,7 +232,17 @@ def geocode_location(location: str) -> GeocodedLocation | None:
         return None
     
     # TODO: Add returned locations to cache
-    # TODO: Filter those locations that aren't specific to an address
+
+    if not data["results"]:
+        return None
+
+    print(data["results"][0]["types"])
+    
+    if all(loc in FILTERABLE_LOCATION_TYPES for loc in data["results"][0]["types"]):
+        print("NO")
+        return None
+
+    print("YES")
 
     lat = data["results"][0]["geometry"]["location"]["lat"]
     lon = data["results"][0]["geometry"]["location"]["lng"]
@@ -248,7 +262,8 @@ def narrow_feed_items(items: List[CustomFeedItem]) -> List[SupabaseRow]:
         "title": item["item"].get("title"),
         "link": item["item"].get("link"),
         "id": str(uuid.uuid3(uuid.NAMESPACE_URL, item["item"].get("id") or "")),
-        "pub_date": item["item"].get("pub_date"),
+        # TODO: Move to initial RSS parsing
+        "pub_date": item["item"].get("pub_date") or date.today().isoformat(),
         "author": item["item"].get("author"),
         "feed_name": item["item"]["feed"].get("name") if item["item"]["feed"] else None,
     } for item in items if has_valid_location(item)]
@@ -261,6 +276,8 @@ def send_to_db(articles: List[CustomFeedItem]) -> None:
     supabase = create_client(supabase_url, supabase_key)
     narrowed_articles = narrow_feed_items(articles)
 
+    print(f"- 4. Sending {len(narrowed_articles)} articles to Supabase")
+
     supabase.table("articles_and_data").insert(narrowed_articles, upsert=True).execute()
 
 
@@ -268,10 +285,7 @@ async def main() -> None:
     try:
         new_articles = await fetch_new_articles()
         if new_articles: 
-            print("New articles found:")
-            for article in new_articles:
-                print(f"- {article['title']} ({article['link']})")
-
+            print("New articles found.")
             full_articles = await add_articles_full_content(new_articles)
             new_articles_with_locations = add_article_locations(full_articles)
             new_articles_with_geocoded_locations = add_geocoded_locations(new_articles_with_locations)
