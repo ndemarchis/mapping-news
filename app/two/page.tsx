@@ -17,6 +17,7 @@ import Modal from "@/components/shared/modal";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { Properties } from "./live/locations/route";
 import Link from "@/components/shared/link";
+import { LoadingDots } from "@/components/shared/icons";
 
 const DateEntry = (isoDate?: string) => {
   if (!isoDate) return undefined;
@@ -38,13 +39,33 @@ const PublicationEntry = (
 
 export default function Openlayers() {
   const [showModal, setShowModal] = useState(false);
-  const [feature, setFeature] = useState<Feature<Geometry>>();
-  const featureProperties = feature?.getProperties() as Record<string, any> &
-    Properties;
+  const [loading, setLoading] = useState(false);
+  const [selectedArticles, setSelectedArticles] = useState<{ articles: any[] }>(
+    { articles: [] },
+  );
+
   const [map, setMap] = useState();
   const mapElement = useRef<HTMLDivElement>();
   const mapRef = useRef();
   mapRef.current = map;
+
+  const handleFeatureClick = async (feature: Feature<Geometry>) => {
+    setShowModal(true);
+    const properties = feature.getProperties();
+    setLoading(true);
+    await fetch(`/two/live/articles/${properties.place_id}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setSelectedArticles({ articles: data });
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    if (!showModal) {
+      setSelectedArticles({ articles: [] });
+    }
+  }, [showModal]);
 
   const dotStyle = useCallback(
     (color: string) =>
@@ -67,7 +88,7 @@ export default function Openlayers() {
     });
 
     const vectorSource = new VectorSource({
-      url: "/two/live",
+      url: "/two/live/locations",
       format: new GeoJSON(),
     });
 
@@ -91,11 +112,11 @@ export default function Openlayers() {
     });
 
     map.addInteraction(selectClick);
-    selectClick.on("select", (e) => {
+    selectClick.on("select", async (e) => {
+      console.log(e);
       const features = e.selected;
       const feature = features?.[0];
-      setFeature(feature);
-      setShowModal(true);
+      await handleFeatureClick(feature);
     });
 
     return () => map.setTarget(undefined);
@@ -109,41 +130,9 @@ export default function Openlayers() {
         setShowModal={setShowModal}
       >
         <DialogTitle>
-          <span className="font-display text-2xl font-bold">
-            {featureProperties?.articleTitle}
-          </span>
+          <span className="font-display text-2xl font-bold">title</span>
         </DialogTitle>
-        <p>
-          This is <span>{featureProperties?.title}</span>
-        </p>
-        <p className=" text-gray-500">
-          {[
-            [featureProperties?.feedName],
-            [
-              featureProperties?.articlePubDate
-                ? new Date(
-                    featureProperties?.articlePubDate,
-                  ).toLocaleDateString()
-                : null,
-            ],
-            [featureProperties?.articleAuthor],
-          ]
-            .filter(Boolean)
-            .map((item) => item)
-            .join(" · ")}
-        </p>
-        {featureProperties?.articleLink && (
-          <p>
-            Read the article at its original location{" "}
-            <Link href={featureProperties?.articleLink}>here</Link>.
-          </p>
-        )}
-        <p className=" text-gray-500 ">
-          <span className="font-bold text-gray-800">
-            All places mentioned in this article:{" "}
-          </span>
-          {featureProperties?.locations}
-        </p>
+        {loading ? <LoadingDots /> : JSON.stringify(selectedArticles)}
       </Modal>
       <div className="flex h-full min-h-[calc(100vh-6rem)] w-full flex-col items-center justify-center py-8">
         <div
