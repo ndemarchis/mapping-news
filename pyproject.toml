@@ -16,6 +16,8 @@ lxml-html-clean = "^0.4.1"
 openai = "^1.58.1"
 pandas = "^2.2.3"
 supabase = "^2.10.0"
+types-requests = "^2.32.0.20241016"
+pandas-stubs = "^2.2.3.241126"
 
 
 [build-system]

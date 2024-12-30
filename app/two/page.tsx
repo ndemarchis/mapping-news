@@ -15,8 +15,16 @@ import { click } from "ol/events/condition";
 import { Geometry } from "ol/geom";
 import Modal from "@/components/shared/modal";
 import { DialogTitle } from "@radix-ui/react-dialog";
-import { Properties } from "./live/route";
 import Link from "@/components/shared/link";
+import { LoadingDots } from "@/components/shared/icons";
+import { Database } from "./live/database.types";
+import ArticleLineItem from "./ArticleLineItem";
+
+type Articles = {
+  address: string;
+  place_id: string;
+  articles: Database["public"]["Tables"]["articles"]["Row"][];
+} | null;
 
 const DateEntry = (isoDate?: string) => {
   if (!isoDate) return undefined;
@@ -38,13 +46,35 @@ const PublicationEntry = (
 
 export default function Openlayers() {
   const [showModal, setShowModal] = useState(false);
-  const [feature, setFeature] = useState<Feature<Geometry>>();
-  const featureProperties = feature?.getProperties() as Record<string, any> &
-    Properties;
+  const [loading, setLoading] = useState(false);
+  const [selectedArticles, setSelectedArticles] = useState<Articles>(null);
+
   const [map, setMap] = useState();
   const mapElement = useRef<HTMLDivElement>();
   const mapRef = useRef();
   mapRef.current = map;
+
+  const handleFeatureClick = async (feature: Feature<Geometry>) => {
+    setShowModal(true);
+    const properties = feature.getProperties();
+    setLoading(true);
+    await fetch(`/two/live/articles/${properties.place_id}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setSelectedArticles({
+          address: properties.title,
+          place_id: properties.place_id,
+          articles: data,
+        });
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    if (!showModal) {
+      setSelectedArticles(null);
+    }
+  }, [showModal]);
 
   const dotStyle = useCallback(
     (color: string) =>
@@ -67,17 +97,12 @@ export default function Openlayers() {
     });
 
     const vectorSource = new VectorSource({
-      url: "/one/live",
+      url: "/two/live/locations",
       format: new GeoJSON(),
     });
 
     const vectorLayer = new VectorLayer({
       source: vectorSource,
-      // style: (feature, _) => {
-      //   const color =
-      //     feature.get("Planned Kiosk Type") === "Link1.0" ? "blue" : "red";
-      //   return dotStyle(color);
-      // },
     });
 
     const map = new Map({
@@ -96,11 +121,11 @@ export default function Openlayers() {
     });
 
     map.addInteraction(selectClick);
-    selectClick.on("select", (e) => {
+    selectClick.on("select", async (e) => {
+      console.log(e);
       const features = e.selected;
       const feature = features?.[0];
-      setFeature(feature);
-      setShowModal(true);
+      await handleFeatureClick(feature);
     });
 
     return () => map.setTarget(undefined);
@@ -109,46 +134,31 @@ export default function Openlayers() {
   return (
     <>
       <Modal
-        className="flex max-h-[80vh] flex-col gap-4 overflow-scroll p-8"
+        className="flex max-h-[80vh] flex-col gap-4 overflow-scroll p-4"
         showModal={showModal}
         setShowModal={setShowModal}
       >
-        <DialogTitle>
-          <span className="font-display text-2xl font-bold">
-            {featureProperties?.articleTitle}
-          </span>
+        <DialogTitle className="p-4 font-display text-2xl font-bold">
+          <Link
+            className="hover:underline"
+            href={`https://www.google.com/maps/place/?q=place_id:${selectedArticles?.place_id}`}
+          >
+            {selectedArticles?.address}
+          </Link>
         </DialogTitle>
-        <p>
-          This is <span>{featureProperties?.title}</span>
-        </p>
-        <p className=" text-gray-500">
-          {[
-            [featureProperties?.feedName],
-            [
-              featureProperties?.articlePubDate
-                ? new Date(
-                    featureProperties?.articlePubDate,
-                  ).toLocaleDateString()
-                : null,
-            ],
-            [featureProperties?.articleAuthor],
-          ]
-            .filter(Boolean)
-            .map((item) => item)
-            .join(" · ")}
-        </p>
-        {featureProperties?.articleLink && (
-          <p>
-            Read the article at its original location{" "}
-            <Link href={featureProperties?.articleLink}>here</Link>.
-          </p>
+        {loading ? (
+          <div className="flex h-full w-full items-center justify-center">
+            <LoadingDots aria-label="Loading" />
+          </div>
+        ) : (
+          selectedArticles?.articles?.length && (
+            <div className="flex flex-col gap-1">
+              {selectedArticles?.articles?.map((article) => (
+                <ArticleLineItem key={article.uuid3} article={article} />
+              ))}
+            </div>
+          )
         )}
-        <p className=" text-gray-500 ">
-          <span className="font-bold text-gray-800">
-            All places mentioned in this article:{" "}
-          </span>
-          {featureProperties?.locations}
-        </p>
       </Modal>
       <div className="flex h-full min-h-[calc(100vh-6rem)] w-full flex-col items-center justify-center py-8">
         <div
