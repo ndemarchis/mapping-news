@@ -15,7 +15,6 @@ import { click } from "ol/events/condition";
 import { Geometry } from "ol/geom";
 import Modal from "@/components/shared/modal";
 import { DialogTitle } from "@radix-ui/react-dialog";
-import { Properties } from "./live/locations/route";
 import Link from "@/components/shared/link";
 import { LoadingDots } from "@/components/shared/icons";
 import { Database } from "./live/database.types";
@@ -23,6 +22,7 @@ import ArticleLineItem from "./ArticleLineItem";
 
 type Articles = {
   address: string;
+  place_id: string;
   articles: Database["public"]["Tables"]["articles"]["Row"][];
 } | null;
 
@@ -61,7 +61,11 @@ export default function Openlayers() {
     await fetch(`/two/live/articles/${properties.place_id}`)
       .then((response) => response.json())
       .then((data) => {
-        setSelectedArticles({ address: properties.title, articles: data });
+        setSelectedArticles({
+          address: properties.title,
+          place_id: properties.place_id,
+          articles: data,
+        });
         setLoading(false);
       });
   };
@@ -135,7 +139,12 @@ export default function Openlayers() {
         setShowModal={setShowModal}
       >
         <DialogTitle className="p-4 font-display text-2xl font-bold">
-          {selectedArticles?.address}
+          <Link
+            className="hover:underline"
+            href={`https://www.google.com/maps/place/?q=place_id:${selectedArticles?.place_id}`}
+          >
+            {selectedArticles?.address}
+          </Link>
         </DialogTitle>
         {loading ? (
           <div className="flex h-full w-full items-center justify-center">
