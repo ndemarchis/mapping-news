@@ -2,6 +2,121 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  1. Use a more-intuitive box-sizing model.
+*/
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+/*
+  2. Remove default margin
+*/
+* {
+  margin: 0;
+}
+/*
+  3. Allow percentage-based heights in the application
+*/
+html,
+body {
+  height: 100%;
+}
+/*
+  Typographic tweaks!
+  4. Add accessible line-height
+  5. Improve text rendering
+*/
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+/*
+  6. Improve media defaults
+*/
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+/*
+  7. Remove built-in form typography styles
+*/
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+/*
+  8. Avoid text overflows
+*/
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+/*
+  9. Create a root stacking context
+*/
+#root,
+#__next {
+  isolation: isolate;
+}
+
+:root {
+  --black: #000101;
+  --white: #ffffff;
+  --purple: #7a1ddd;
+  --lightpurple: #cb9bff;
+  --tan: #6b8987;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  font-variation-settings: "CRSV" 0, "slnt" 0;
+}
+
+.h0 {
+  @apply text-3xl font-black md:text-5xl;
+}
+
+h1,
+.h1 {
+  @apply text-2xl font-black md:text-4xl;
+}
+
+h2,
+.h2 {
+  @apply text-xl font-black md:text-3xl;
+}
+
+h3,
+.h3 {
+  @apply text-base font-bold md:text-xl;
+}
+
+h4,
+.h4 {
+  @apply text-base font-bold md:text-lg;
+}
+
+body,
+.p {
+  @apply text-sm md:text-base;
+}
+
 .link {
   @apply font-semibold text-gray-600 underline-offset-2 transition-colors hover:underline;
 }

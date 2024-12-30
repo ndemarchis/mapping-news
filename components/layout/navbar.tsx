@@ -5,6 +5,7 @@ import Link from "next/link";
 import useScroll from "@/lib/hooks/use-scroll";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { LayoutDashboard } from "lucide-react";
+import MapPinned from "./icons/MapPinned";
 
 export default function NavBar() {
   const scrolled = useScroll(50);
@@ -19,8 +20,12 @@ export default function NavBar() {
         } z-30 transition-all`}
       >
         <div className="mx-5 flex h-16 w-full max-w-screen-xl items-center justify-between">
-          <Link href="/" className="flex items-center font-display text-2xl">
-            <p>mapping.news</p>
+          <Link
+            href="/"
+            className="flex flex-row items-center gap-2 font-display text-2xl"
+          >
+            <MapPinned />
+            mapping.news
           </Link>
           {/* <SignedOut>
             <SignInButton mode="modal">

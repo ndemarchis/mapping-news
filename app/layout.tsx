@@ -11,6 +11,28 @@ export const metadata = {
   title: "mapping.news",
   description: "a news-mapping project",
   metadataBase: new URL("https://mapping.news"),
+  openGraph: {
+    title: "mapping.news",
+    description: "a news-mapping project",
+    url: "https://mapping.news",
+    siteName: "mapping.news",
+    locale: "en-US",
+    type: "website",
+    images: [
+      {
+        url: "https://mapping.news/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "mapping.news logo against a map backdrop",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "mapping.news",
+    description: "a news-mapping project",
+    images: ["https://mapping.news/og-image.png"],
+  },
 };
 
 export default async function RootLayout({

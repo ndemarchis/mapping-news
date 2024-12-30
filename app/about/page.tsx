@@ -2,14 +2,22 @@ import Link from "@/components/shared/link";
 
 export default function About() {
   return (
-    <div className="z-10 w-full max-w-xl px-5 xl:px-0">
-      <h1 className="text-3xl font-bold">about</h1>
+    <div className="z-10 flex w-full max-w-xl flex-col gap-2 px-5 xl:px-0">
+      <h1>about</h1>
       <p>
         this project is maintained by{" "}
         <Link href="https://nickdemarchis.com">nick deMarchis</Link> to document
         changes in the local journalism landscape.
       </p>
-      <h1 className="mt-8 text-3xl font-bold">tools</h1>
+      <p>
+        its flagship project is{" "}
+        <Link href="/two" sameWindow>
+          Live
+        </Link>
+        , a map of locations mentioned in local news articles. read more{" "}
+        <Link href="/two">there</Link>.
+      </p>
+      <h2>tools</h2>
       <ul className="list-disc pl-4">
         <li>
           <Link href="https://precedent.dev">Precedent</Link> framework, which
@@ -48,7 +56,7 @@ export default function About() {
           </ul>
         </li>
       </ul>
-      <h1 className="mt-8 text-3xl font-bold">contact</h1>
+      <h2>contact</h2>
       <p>
         email{" "}
         <span className="font-semibold text-gray-600 underline-offset-2">
