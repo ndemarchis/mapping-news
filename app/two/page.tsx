@@ -58,7 +58,10 @@ export default function Openlayers() {
     setShowModal(true);
     const properties = feature.getProperties();
     setLoading(true);
-    await fetch(`/two/live/articles/${properties.place_id}`)
+    await fetch(`/two/live/articles/${properties.place_id}`, {
+      cache: "force-cache",
+      next: { revalidate: 1800 },
+    })
       .then((response) => response.json())
       .then((data) => {
         setSelectedArticles({
@@ -109,9 +112,9 @@ export default function Openlayers() {
       target: mapElement.current,
       layers: [osmLayer, vectorLayer],
       view: new View({
-        center: [-73.96, 40.69],
-        zoom: 10.12,
-        projection: "EPSG:4326",
+        center: [-8233189, 4966723],
+        zoom: 11,
+        projection: "EPSG:3857",
       }),
     });
 

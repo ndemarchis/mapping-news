@@ -1,23 +1,20 @@
 name,url,minLat,minLon,maxLat,maxLon
 
+New York Times,https://rss.nytimes.com/services/xml/rss/nyt/NYRegion.xml,40.49,-74.27,40.90,-73.65
 Gothamist,https://gothamist.com/feed,40.49,-74.27,40.90,-73.65
 New York Post,https://nypost.com/metro/feed/,40.49,-74.27,40.90,-73.65
+The City,https://www.thecity.nyc/rss,40.49,-74.27,40.90,-73.65
 Curbed,https://www.curbed.com/feeds/full-content.rss,40.49,-74.27,40.90,-73.65
 NY1,https://ny1.com/services/contentfeed.nyc%7call-boroughs%7cnews.landing.rss,40.49,-74.27,40.90,-73.65
 Brooklyn Eagle,https://brooklyneagle.com/feed/,40.55,-74.04,40.75,-73.84
-Chicago Tribune,https://www.chicagotribune.com/arc/outboundfeeds/rss/section/news/&sort=display_date:desc,41.64,-88.28,42.29,-87.35
-Philadelphia Inquirer,https://openrss.org/www.inquirer.com/news/,39.87,-75.34,40.14,-74.95
-boston.com,https://www.boston.com/tag/local-news/feed/,42.22,-71.19,42.40,-70.92
-Minnesota Star Tribune,https://www.startribune.com/local/index.rss2,44.68,-93.33,45.29,-92.99
-Pittsburgh Post-Gazette,https://www.post-gazette.com/rssfeeds,40.33,-80.10,40.50,-79.80
-Spotlight PA,https://www.spotlightpa.org/feeds/full.xml,39.72,-80.52,42.27,-74.71
 qns.com,https://qns.com/feed/,40.49,-74.27,40.90,-73.65
 Bronx Times,https://www.bxtimes.com/feed/,40.49,-74.27,40.90,-73.65
-Wisconsin State Journal,https://madison.com/search/?f=rss&t=article&c=&q=%23wsj&l=25&s=start_time&sd=desc,43.00,-89.60,43.20,-89.30
-The Lens,https://thelensnola.org/feed/,29.85,-90.15,30.05,-89.85
-Denver Post,https://www.denverpost.com/feed/,39.61,-105.05,39.95,-104.70
-SFGate.com,https://www.sfgate.com/bayarea/feed/bay-area-news-429.php,37.63,-123.17,38.00,-122.30
-Scranton Times-Tribune,https://www.thetimes-tribune.com/local-news/feed/,41.30,-75.90,41.50,-75.50
-NBC4 Washington,https://www.nbcwashington.com/news/local/feed/,38.80,-77.30,39.10,-76.90
-Chicago Sun Times,https://chicago.suntimes.com/rss/news/index.xml,41.64,-88.28,42.29,-87.35
-Isthmus,https://isthmus.com/api/rss/content.rss,43.00,-89.60,43.20,-89.30
+Canarsie Courier,https://www.siftrss.com/f/pN31x1AAAxY,40.55,-74.04,40.75,-73.84
+New York Daily News,https://www.nydailynews.com/news/new-york-news/feed/,40.49,-74.27,40.90,-73.65
+Caribbean Life,https://www.caribbeanlife.com/category/new-york-local/feed/,40.49,-74.27,40.90,-73.65
+New York Beacon,https://newyorkbeacon.com/feed/,40.49,-74.27,40.90,-73.65
+Long Island Press,https://www.longislandpress.com/feed/,40.49,-74.27,41.22,-71.79
+Brooklyn Paper,https://www.brooklynpaper.com/feed/,40.55,-74.04,40.75,-73.84
+ABC7 NY,https://abc7ny.com/feed/,40.49,-74.27,40.90,-73.65
+Queens Post,https://queenspost.com/feed,40.49,-74.27,40.90,-73.65
+Mott Haven Herald,https://motthavenherald.com/feed/,40.49,-74.27,40.90,-73.65

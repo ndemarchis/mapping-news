@@ -16,9 +16,7 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  const { slug } = await params; // 'a', 'b', or 'c'
-
-  console.log({ slug });
+  const { slug } = await params;
 
   const supabase = createClient<Database>(
     process.env.SUPABASE_URL || "",
