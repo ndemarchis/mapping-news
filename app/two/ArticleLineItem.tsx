@@ -38,7 +38,7 @@ const ModifiedEntriesWithDots = ({
     {entries
       .map((entry, index) =>
         entryModifiers[entry] ? (
-          entryModifiers[entry](article[entry] || "", index)
+          entryModifiers[entry]?.(article[entry] || "", index)
         ) : (
           <span key={index}>{article[entry]}</span>
         ),
