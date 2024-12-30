@@ -40,7 +40,7 @@ const ModifiedEntriesWithDots = ({
         entryModifiers[entry] ? (
           entryModifiers[entry](article[entry] || "", index)
         ) : (
-          <span>{article[entry]}</span>
+          <span key={index}>{article[entry]}</span>
         ),
       )
       .filter(Boolean)}
