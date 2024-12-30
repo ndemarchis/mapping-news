@@ -211,9 +211,10 @@ async def fetch_new_articles() -> List[FeedItem]:
             if not hashed_id:
                 continue
             if hashed_id in seen_articles:
-                print(f"    (Seen: {article.get('title', '')})")
+                # print(f"    (Seen: {article.get('title', '')})")
                 continue
             if (articles_count < TEMP_ARTICLES_LIMIT):
+                print(f"    (New: {article.get('title', '')})")
                 articles_count += 1
                 new_articles.append(article)
                 seen_articles.append(hashed_id)
@@ -226,10 +227,14 @@ async def scrap(url: Optional[str]) -> str:
     if not url:
         return ""
     
-    article = Article(url)
-    article.download()
-    article.parse()
-    return article.text
+    try:
+        article = Article(url)
+        article.download()
+        article.parse()
+        return article.text
+    except Exception as e:
+        print(f"    (Error: {e})")
+        return ""
 
 async def add_articles_full_content(articles: List[FeedItem]) -> List[FeedItem]:
     """For those articles that are missing full text, fetch the full content."""
@@ -289,6 +294,17 @@ def filter_new_geocoded_full_locations(new_geocoded_full_locations: List[Locatio
 
     return list({location["place_id"]: location for location in unseen_locations}.values())
 
+def get_geo_boundaries(article: CustomFeedItem) -> GeoBoundaries | None:
+    """Get the geo boundaries for the feed, if present."""
+    if article["item"]["feed"]:
+        return {
+            "minLat": article["item"]["feed"]["minLat"],
+            "minLon": article["item"]["feed"]["minLon"],
+            "maxLat": article["item"]["feed"]["maxLat"],
+            "maxLon": article["item"]["feed"]["maxLon"],
+        }
+    return None
+
 async def add_geocoded_locations(articles: List[CustomFeedItem]) -> GeocodingResultDefinition:
     """For each article, geocode the locations."""
 
@@ -297,7 +313,7 @@ async def add_geocoded_locations(articles: List[CustomFeedItem]) -> GeocodingRes
         """Add a new geocoded location to the cache in this function. Workaround until this is all in a class."""
         new_geocoded_full_locations.append(location)
 
-    articles_with_geo = await asyncio.gather(*(add_geocoded_location(article, add_new_geocoded_location) for article in articles))
+    articles_with_geo = await asyncio.gather(*(add_geocoded_location(article, add_new_geocoded_location, get_geo_boundaries(article)) for article in articles))
 
     # TODO: Preliminary solution to avoid upsert errors.
     filtered_new_geocoded_full_locations = filter_new_geocoded_full_locations(new_geocoded_full_locations)
@@ -307,22 +323,22 @@ async def add_geocoded_locations(articles: List[CustomFeedItem]) -> GeocodingRes
         "new_geocoded_full_locations": filtered_new_geocoded_full_locations
     }
 
-async def add_geocoded_location(article: CustomFeedItem, add_new_geocoded_location: Callable[[LocationsDefinition], None]) -> CustomFeedItem:
+async def add_geocoded_location(article: CustomFeedItem, add_new_geocoded_location: Callable[[LocationsDefinition], None], geo_boundaries: Optional[GeoBoundaries]) -> CustomFeedItem:
     locations = article["locations"]
 
-    geocoded_locations = await geocode_locations(locations, add_new_geocoded_location)
+    geocoded_locations = await geocode_locations(locations, add_new_geocoded_location, geo_boundaries)
     return {
         "item": article["item"],
         "locations": geocoded_locations,
     }
 
-async def geocode_locations(locations: GeocodedLocations, add_new_geocoded_location: Callable[[LocationsDefinition], None]) -> GeocodedLocations:
+async def geocode_locations(locations: GeocodedLocations, add_new_geocoded_location: Callable[[LocationsDefinition], None], geo_boundaries: Optional[GeoBoundaries]) -> GeocodedLocations:
     """For each location, make a request to Google Maps API to get geocoding information."""
     
     returned_locations: GeocodedLocations = defaultdict()
 
     for location in locations:
-        geocoded_location = await geocode_location(location, add_new_geocoded_location)
+        geocoded_location = await geocode_location(location, add_new_geocoded_location, geo_boundaries)
         if geocoded_location:
             returned_locations[location] = geocoded_location
 
@@ -352,7 +368,7 @@ def format_geocoding_results_for_cache(result: dict) -> LocationsDefinition:
         "types": result.get("types"),
     }
 
-async def geocode_location(location: str, add_new_geocoded_location: Callable[[LocationsDefinition], None]) -> PlaceId | None:
+async def geocode_location(location: str, add_new_geocoded_location: Callable[[LocationsDefinition], None], geo_boundaries: Optional[GeoBoundaries]) -> PlaceId | None:
     """Make a request to Google Maps API to get geocoding information. Returns the place_id."""
 
     cached_location = get_location_in_alias_cache(location)
@@ -363,9 +379,11 @@ async def geocode_location(location: str, add_new_geocoded_location: Callable[[L
 
     key = os.getenv("GOOGLE_MAPS_API_KEY")
     url = "https://maps.googleapis.com/maps/api/geocode/json"
+    bounds = f"{geo_boundaries['minLat']},{geo_boundaries['minLon']}|{geo_boundaries['maxLat']},{geo_boundaries['maxLon']}" if geo_boundaries else None
     params = {
         "key": key,
         "address": location,
+        "bounds": bounds,
     }
 
     print(f"- 3. {location} (Geocoding)")
