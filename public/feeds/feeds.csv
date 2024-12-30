@@ -1,0 +1,20 @@
+name,url,minLat,minLon,maxLat,maxLon
+
+New York Times,https://rss.nytimes.com/services/xml/rss/nyt/NYRegion.xml,40.49,-74.27,40.90,-73.65
+Gothamist,https://gothamist.com/feed,40.49,-74.27,40.90,-73.65
+New York Post,https://nypost.com/metro/feed/,40.49,-74.27,40.90,-73.65
+The City,https://www.thecity.nyc/rss,40.49,-74.27,40.90,-73.65
+Curbed,https://www.curbed.com/feeds/full-content.rss,40.49,-74.27,40.90,-73.65
+NY1,https://ny1.com/services/contentfeed.nyc%7call-boroughs%7cnews.landing.rss,40.49,-74.27,40.90,-73.65
+Brooklyn Eagle,https://brooklyneagle.com/feed/,40.55,-74.04,40.75,-73.84
+qns.com,https://qns.com/feed/,40.49,-74.27,40.90,-73.65
+Bronx Times,https://www.bxtimes.com/feed/,40.49,-74.27,40.90,-73.65
+Canarsie Courier,https://www.siftrss.com/f/pN31x1AAAxY,40.55,-74.04,40.75,-73.84
+New York Daily News,https://www.nydailynews.com/news/new-york-news/feed/,40.49,-74.27,40.90,-73.65
+Caribbean Life,https://www.caribbeanlife.com/category/new-york-local/feed/,40.49,-74.27,40.90,-73.65
+New York Beacon,https://newyorkbeacon.com/feed/,40.49,-74.27,40.90,-73.65
+Long Island Press,https://www.longislandpress.com/feed/,40.49,-74.27,41.22,-71.79
+Brooklyn Paper,https://www.brooklynpaper.com/feed/,40.55,-74.04,40.75,-73.84
+ABC7 NY,https://abc7ny.com/feed/,40.49,-74.27,40.90,-73.65
+Queens Post,https://queenspost.com/feed,40.49,-74.27,40.90,-73.65
+Mott Haven Herald,https://motthavenherald.com/feed/,40.49,-74.27,40.90,-73.65

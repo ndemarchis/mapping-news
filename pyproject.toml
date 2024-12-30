@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "mapping-news"
+version = "0.1.0"
+description = ""
+authors = ["Nick DeMarchis <hi@mapping.news>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "3.12.6"
+newspaper3k = "^0.2.8"
+feedparser = "^6.0.11"
+aiohttp = "^3.11.11"
+spacy = "^3.8.3"
+lxml-html-clean = "^0.4.1"
+openai = "^1.58.1"
+pandas = "^2.2.3"
+supabase = "^2.10.0"
+types-requests = "^2.32.0.20241016"
+pandas-stubs = "^2.2.3.241126"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
