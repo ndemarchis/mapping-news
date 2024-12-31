@@ -27,3 +27,7 @@ read more on the [about page for the project](https://mapping.news/about).
 # questions?
 
 contact info is available on the [about page for the project](https://mapping.news/about).
+
+# further reading and acknowledgements
+
+read more on the [about page for the project](https://mapping.news/about).

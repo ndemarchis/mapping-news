@@ -56,6 +56,34 @@ export default function About() {
           </ul>
         </li>
       </ul>
+      <h2>further reading</h2>
+      <p>
+        <ul className="list-disc pl-4">
+          <li>
+            Z. Metzger, “The State of Local News,” Local News Initiative.
+            Accessed: Dec. 31, 2024. [Online]. Available:
+            <Link href="https://localnewsinitiative.northwestern.edu/projects/state-of-local-news/2024/report/">
+              localnewsinitiative.northwestern.edu
+            </Link>
+          </li>
+          <li>
+            G. Ariyarathne and A. C. Nwala, “3DLNews: A Three-decade Dataset of
+            US Local News Articles,” in
+            <span className="italic">
+              Proceedings of the 33rd ACM International Conference on
+              Information and Knowledge Management (CIKM ’24)
+            </span>
+            , New York, NY, USA: ACM, 2024, pp. 1–5. doi:
+            <Link href="https://doi.org/10.1145/3627673.3679165">
+              10.1145/3627673.3679165
+            </Link>
+            .
+          </li>
+          <li>
+            <Link href="https://www.mediacloud.org/">Media Cloud</Link>
+          </li>
+        </ul>
+      </p>
       <h2>contact</h2>
       <p>
         email{" "}
