@@ -10,12 +10,12 @@ export default function About() {
         changes in the local journalism landscape.
       </p>
       <p>
-        its flagship project is{" "}
+        its main project is{" "}
         <Link href="/two" sameWindow>
-          Live
+          here
         </Link>
         , a map of locations mentioned in local news articles. read more{" "}
-        <Link href="/two">there</Link>.
+        <Link href="/two">on that page</Link>.
       </p>
       <h2>tools</h2>
       <ul className="list-disc pl-4">
@@ -60,7 +60,7 @@ export default function About() {
       <p>
         email{" "}
         <span className="font-semibold text-gray-600 underline-offset-2">
-          hi [at] mapping.news
+          hi [at] mapping [dot] news
         </span>
         .
       </p>

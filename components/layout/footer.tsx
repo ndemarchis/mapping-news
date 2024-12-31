@@ -6,6 +6,7 @@ export default function Footer() {
       <p className="text-gray-500">
         a project by{" "}
         <Link href="https://nickdemarchis.com">nick deMarchis</Link>
+         · <Link href="https://github.com/ndemarchis/mapping-news">github</Link>
          · 
         <Link href="/about" sameWindow>
           about this site

@@ -39,6 +39,7 @@ next-env.d.ts
 
 # misc
 .vscode
+.obsidian
 
 # python
 

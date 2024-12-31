@@ -8,10 +8,6 @@ type ResponseData = {
 
 type PlaceId = Database["public"]["Tables"]["locations"]["Row"]["place_id"];
 
-const isSlugValidLocation = (slug: string): slug is PlaceId => {
-  return /^[a-zA-Z0-9]+$/.test(slug);
-};
-
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ slug: string }> },
@@ -23,15 +19,12 @@ export async function GET(
     process.env.SUPABASE_API_KEY || "",
   );
 
-  // if (!isSlugValidLocation(slug)) {
-  //   return Response.error();
-  // }
-
   let { data, error } = await supabase
     .from("location_article_relations")
     .select(
       `
         article_uuid, 
+        location_name,
         articles (*)
 			`,
     )
@@ -47,7 +40,12 @@ export async function GET(
   }
 
   return Response.json(
-    data.map((relation) => relation.articles).filter(Boolean),
+    data
+      .map((relation) => ({
+        ...relation.articles,
+        location_name: relation.location_name,
+      }))
+      .filter(Boolean),
   );
 
   //   const { data: relations, error: relationsError } = await supabase

@@ -1,7 +1,5 @@
 import Link from "@/components/shared/link";
-import { Database } from "./live/database.types";
-
-type ArticleDefinition = Database["public"]["Tables"]["articles"]["Row"];
+import { ArticleDefinition } from "./types";
 
 const entryModifiers: Partial<{
   [K in keyof ArticleDefinition]: (
@@ -18,6 +16,14 @@ const entryModifiers: Partial<{
     return (
       <span className="font-bold" key={index}>
         {value}
+      </span>
+    );
+  },
+  location_name: (value, index) => {
+    if (!value) return null;
+    return (
+      <span key={index}>
+        this location was approximately called {value} in this article
       </span>
     );
   },
@@ -47,7 +53,13 @@ const ModifiedEntriesWithDots = ({
   </div>
 );
 
-const ArticleLineItem = ({ article }: { article: ArticleDefinition }) => {
+const ArticleLineItem = ({
+  article,
+  showLocationInfo,
+}: {
+  article: ArticleDefinition;
+  showLocationInfo?: boolean;
+}) => {
   return (
     <Link
       className="flex flex-col gap-1 rounded-md px-4 py-2 hover:bg-slate-200"
@@ -60,7 +72,13 @@ const ArticleLineItem = ({ article }: { article: ArticleDefinition }) => {
       />
       <ModifiedEntriesWithDots
         article={article}
-        entries={["pub_date", "author"]}
+        entries={[
+          "pub_date",
+          "author",
+          ...(["location_name"].filter(() => Boolean(showLocationInfo)) as
+            | ["location_name"]
+            | []),
+        ]}
         className="text-xs text-gray-500"
       />
     </Link>

@@ -15,16 +15,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      # Step 2: Set up Python with Poetry
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          node-version: "16"
+          python-version: "3.x"
+      - name: Install Poetry
+        run: |
+          pip install poetry
+          poetry install
 
       # Step 3: Install dependencies
       - name: Install dependencies
-        run: npm install
+        run: poetry install
 
       # Step 4: Run the feed parser script
-      - name: Run feed parser
-        run: npx tsx actions/feedParser.ts
+      - name: Run feed parser script
+        run: poetry run python actions/feedParser.py
