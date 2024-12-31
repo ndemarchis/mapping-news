@@ -28,7 +28,8 @@ export async function GET(
         articles (*)
 			`,
     )
-    .eq("place_id", slug);
+    .eq("place_id", slug)
+    .order("articles.pub_date", { ascending: false });
 
   if (error) {
     console.error(error);
