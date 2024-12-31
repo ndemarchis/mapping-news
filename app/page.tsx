@@ -7,7 +7,7 @@ export default function Home() {
         a project to map locations mentioned in local news articles in
         real-time.
       </h1>
-      <Link href="/two" sameWindow>
+      <Link href="/nyc" sameWindow>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/og-image.png"
@@ -17,7 +17,7 @@ export default function Home() {
       </Link>
       <p>
         our flagship project, Live, is now... live.{" "}
-        <Link href="/two" sameWindow>
+        <Link href="/nyc" sameWindow>
           click me to explore.
         </Link>
       </p>

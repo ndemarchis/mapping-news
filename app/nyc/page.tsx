@@ -69,7 +69,7 @@ export default function Openlayers() {
     if (!properties) return;
     setShowModal(true);
     setLoading(true);
-    await fetch(`/two/live/articles/${properties.place_id}`, {
+    await fetch(`/nyc/live/articles/${properties.place_id}`, {
       cache: "force-cache",
       next: { revalidate: 1800 },
     })
@@ -111,7 +111,7 @@ export default function Openlayers() {
     });
 
     const vectorSource = new VectorSource({
-      url: "/two/live/locations",
+      url: "/nyc/live/locations",
       format: new GeoJSON(),
     });
 

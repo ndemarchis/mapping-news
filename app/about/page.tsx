@@ -11,11 +11,11 @@ export default function About() {
       </p>
       <p>
         its main project is{" "}
-        <Link href="/two" sameWindow>
+        <Link href="/nyc" sameWindow>
           here
         </Link>
         , a map of locations mentioned in local news articles. read more{" "}
-        <Link href="/two">on that page</Link>.
+        <Link href="/nyc">on that page</Link>.
       </p>
       <h2>tools</h2>
       <ul className="list-disc pl-4">
