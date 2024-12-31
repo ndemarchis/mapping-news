@@ -279,8 +279,8 @@ export default function Openlayers() {
         </p>
         <ul className="list-disc pl-4">
           <li>
-            the OpenAI model isn't amazing at pulling out non-obvious locations,
-            and sometimes is either too verbose or too general
+            the OpenAI model isn&apos;t amazing at pulling out non-obvious
+            locations, and sometimes is either too verbose or too general
           </li>
           <li>
             at this moment, i can only really use publications that have working
@@ -298,7 +298,7 @@ export default function Openlayers() {
           <Link href="https://github.com/ndemarchis/mapping-news/issues">
             issue tracker
           </Link>
-          . there's a <span className="italic">lot</span> of work to do —{" "}
+          . there&apos;s a <span className="italic">lot</span> of work to do —{" "}
           <span className="italic">especially</span> to expand this work to more
           communities and understand better how neighborhoods receive news
           coverage.
