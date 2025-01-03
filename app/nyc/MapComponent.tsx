@@ -200,6 +200,11 @@ export default function MapComponent() {
       await handleFeatureClick(feature);
     });
 
+    map.on('pointermove', (event) => {
+      const hit = map.hasFeatureAtPixel(event.pixel);
+      map.getTargetElement().style.cursor = hit ? 'pointer' : '';
+    });
+
     return () => map.setTarget(undefined);
   }
 }
