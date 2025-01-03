@@ -177,7 +177,7 @@ def feed_item_standardizer(item: dict) -> FeedItem:
     return {
         "title": item.get("title"),
         "link": item.get("link"),
-        "pub_date": item.get("published"),
+        "pub_date": item.get("published") or item.get("updated") or date.today().isoformat(),
         "id": item.get("id"),
         "author": item.get("author"),
     }

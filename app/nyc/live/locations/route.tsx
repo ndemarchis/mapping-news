@@ -15,6 +15,33 @@ export type Properties = {
   locations: string | null;
 };
 
+type Simplify<T> =
+  | {
+      [K in keyof T]: T[K];
+    };
+
+type NullableLocation = {
+  formatted_address: string | null;
+  lat: number | null;
+  lon: number | null;
+  place_id: string;
+  types: string[] | null;
+};
+
+type RequiredLocationAttrs = Pick<NullableLocation, "lat" | "lon">;
+
+type Location = Simplify<
+  Omit<NullableLocation, keyof RequiredLocationAttrs> & {
+    [K in keyof RequiredLocationAttrs]: NonNullable<RequiredLocationAttrs[K]>;
+  }
+>;
+
+const isPartiallyNullablePoint = (
+  point: NullableLocation,
+): point is Location => {
+  return typeof point.lat === "number" && typeof point.lon === "number";
+};
+
 export async function GET() {
   const supabase = createClient<Database>(
     process.env.SUPABASE_URL || "",
@@ -24,15 +51,7 @@ export async function GET() {
   const getDataRecursive = async (
     start = 0,
   ): Promise<{
-    data:
-      | {
-          formatted_address: string | null;
-          lat: number | null;
-          lon: number | null;
-          place_id: string;
-          types: string[] | null;
-        }[]
-      | null;
+    data: NullableLocation[] | null;
     error: PostgrestError | null;
   }> => {
     const returned = await supabase
@@ -77,23 +96,18 @@ export async function GET() {
 
   const geoJson: GeoJSON.FeatureCollection = {
     type: "FeatureCollection",
-    features: data
-      .filter(
-        (location) =>
-          typeof location.lat === "number" && typeof location.lon === "number",
-      )
-      .map((location) => ({
-        type: "Feature" as const,
-        geometry: {
-          type: "Point" as const,
-          coordinates: [location.lon as number, location.lat as number],
-        },
-        properties: {
-          place_id: location.place_id,
-          title: location.formatted_address,
-          location_type: location.types,
-        },
-      })),
+    features: data.filter(isPartiallyNullablePoint).map((location) => ({
+      type: "Feature" as const,
+      geometry: {
+        type: "Point" as const,
+        coordinates: [location.lon, location.lat],
+      },
+      properties: {
+        place_id: location.place_id,
+        title: location.formatted_address,
+        location_type: location.types,
+      },
+    })),
   };
 
   return Response.json(geoJson);
