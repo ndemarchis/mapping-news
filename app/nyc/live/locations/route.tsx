@@ -1,4 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
+import {
+  createClient,
+  PostgrestError,
+  PostgrestSingleResponse,
+} from "@supabase/supabase-js";
 import { Database } from "../database.types";
 
 export type Properties = {
@@ -17,7 +21,54 @@ export async function GET() {
     process.env.SUPABASE_API_KEY || "",
   );
 
-  const { data, error } = await supabase.from("locations").select("*");
+  const getDataRecursive = async (
+    start = 0,
+  ): Promise<{
+    data:
+      | {
+          formatted_address: string | null;
+          lat: number | null;
+          lon: number | null;
+          place_id: string;
+          types: string[] | null;
+        }[]
+      | null;
+    error: PostgrestError | null;
+  }> => {
+    const returned = await supabase
+      .from("locations")
+      .select("*")
+      .range(start, start + 1000);
+
+    const data = returned.data || [];
+    const error = returned.error;
+
+    if (error) {
+      return { data: null, error };
+    }
+
+    if (!data) {
+      return { data: null, error: null };
+    }
+
+    if (data.length === 1000) {
+      const recurred = await getDataRecursive(start + 1000);
+      const recurredData = recurred.data || [];
+
+      return {
+        data: [...data, ...recurredData],
+        error: recurred.error,
+      };
+    }
+
+    return { data, error };
+  };
+
+  const { data, error } = await getDataRecursive();
+
+  if (!data) {
+    return Response.json([]);
+  }
 
   if (error) {
     console.error(error);
