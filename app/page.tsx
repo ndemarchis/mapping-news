@@ -16,7 +16,7 @@ export default function Home() {
         />
       </Link>
       <p>
-        our flagship project, Live, is now... live.{" "}
+        our flagship project to map news in NYC, is now... live.{" "}
         <Link href="/nyc" sameWindow>
           click me to explore.
         </Link>
