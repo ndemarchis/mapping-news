@@ -69,8 +69,8 @@ export default function MapComponent() {
 
   const viewportSize = useViewportSize();
   const sizeDependentDotStyles = {
-    radius: viewportSize.width < 768 ? 5 : 3,
-    strokeWidth: viewportSize.width < 768 ? 2 : 1.5,
+    radius: viewportSize.width < 768 ? 10 : 5,
+    strokeWidth: viewportSize.width < 768 ? 3 : 2,
   };
 
   const dotStyle = useCallback(
@@ -91,46 +91,7 @@ export default function MapComponent() {
   );
 
   useEffect(() => {
-    const osmLayer = new TileLayer({
-      preload: Infinity,
-      source: new OSM(),
-    });
-
-    const vectorSource = new VectorSource({
-      url: "/nyc/live/locations",
-      format: new GeoJSON(),
-    });
-
-    const vectorLayer = new VectorLayer({
-      source: vectorSource,
-      style: (feature, other) => {
-        return dotStyle(feature);
-      },
-    });
-
-    const map = new Map({
-      target: mapElement.current,
-      layers: [osmLayer, vectorLayer],
-      view: new View({
-        center: [-8233189, 4966723],
-        zoom: 11,
-        projection: "EPSG:3857",
-      }),
-    });
-
-    const selectClick = new Select({
-      condition: click,
-      // style: selectStyle,
-    });
-
-    map.addInteraction(selectClick);
-    selectClick.on("select", async (e) => {
-      const features = e.selected;
-      const feature = features?.[0];
-      await handleFeatureClick(feature);
-    });
-
-    return () => map.setTarget(undefined);
+    return initializeMap(mapElement);
   }, []);
 
   return (
@@ -198,4 +159,47 @@ export default function MapComponent() {
       <About />
     </>
   );
+
+  function initializeMap(mapElement: React.MutableRefObject<HTMLDivElement | undefined>) {
+    const osmLayer = new TileLayer({
+      preload: Infinity,
+      source: new OSM(),
+    });
+
+    const vectorSource = new VectorSource({
+      url: "/nyc/live/locations",
+      format: new GeoJSON(),
+    });
+
+    const vectorLayer = new VectorLayer({
+      source: vectorSource,
+      style: (feature, _) => {
+        return dotStyle(feature);
+      },
+    });
+
+    const map = new Map({
+      target: mapElement.current,
+      layers: [osmLayer, vectorLayer],
+      view: new View({
+        center: [-8233189, 4966723],
+        zoom: 11,
+        projection: "EPSG:3857",
+      }),
+    });
+
+    const selectClick = new Select({
+      condition: click,
+      // style: selectStyle,
+    });
+
+    map.addInteraction(selectClick);
+    selectClick.on("select", async (e) => {
+      const features = e.selected;
+      const feature = features?.[0];
+      await handleFeatureClick(feature);
+    });
+
+    return () => map.setTarget(undefined);
+  }
 }
