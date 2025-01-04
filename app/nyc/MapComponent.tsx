@@ -13,28 +13,18 @@ import Circle from "ol/style/Circle";
 import Select from "ol/interaction/Select";
 import { click } from "ol/events/condition";
 import { Geometry } from "ol/geom";
-import Modal from "@/components/shared/modal";
-import { DialogTitle } from "@radix-ui/react-dialog";
-import Link from "@/components/shared/link";
-import { LoadingDots } from "@/components/shared/icons";
-import ArticleLineItem from "./ArticleLineItem";
 import { ArticlesDefinition } from "./types";
-import { HelpCircle } from "lucide-react";
-import Tooltip from "@/components/shared/tooltip";
-import About from "../about/page";
+import About from "./About";
 import { FeatureLike } from "ol/Feature";
-import { useViewportSize } from "@/components/shared/viewport-size";
 import Fill from "ol/style/Fill";
+import MapModal from "./MapModal";
+import useMediaQuery from "@/lib/hooks/use-media-query";
 
-export default function MapComponent() {
+const MapComponent = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedArticles, setSelectedArticles] =
     useState<ArticlesDefinition>(null);
-  const selectedArticlesLocationNames =
-    selectedArticles?.articles
-      ?.map((a) => a.location_name)
-      .filter((a) => a !== null) || [];
 
   const [map, setMap] = useState();
   const mapElement = useRef<HTMLDivElement>();
@@ -67,10 +57,10 @@ export default function MapComponent() {
     }
   }, [showModal]);
 
-  const viewportSize = useViewportSize();
+  const { isMobile } = useMediaQuery();
   const sizeDependentDotStyles = {
-    radius: viewportSize.width < 768 ? 10 : 5,
-    strokeWidth: viewportSize.width < 768 ? 3 : 2,
+    radius: isMobile ? 7 : 5,
+    strokeWidth: isMobile ? 3 : 2,
   };
 
   const dotStyle = useCallback(
@@ -96,71 +86,25 @@ export default function MapComponent() {
 
   return (
     <>
-      <Modal
-        className="flex max-h-[80vh] flex-col gap-4 overflow-scroll p-4"
+      <MapModal
         showModal={showModal}
         setShowModal={setShowModal}
-      >
-        <DialogTitle className="flex flex-col gap-1 p-4">
-          {selectedArticlesLocationNames.length ? (
-            <>
-              <span className="flex flex-row items-center gap-2 font-display text-2xl font-bold">
-                {selectedArticlesLocationNames[0]}{" "}
-                <Tooltip
-                  content={
-                    selectedArticlesLocationNames.length > 1
-                      ? `This is roughly how one of the articles referred to this place.`
-                      : `This is roughly how the article referred this place.`
-                  }
-                >
-                  <HelpCircle className="text-gray-400 transition-all hover:text-gray-500" />
-                </Tooltip>
-              </span>
-              <Link
-                className="text-xs text-gray-500 hover:underline"
-                href={`https://www.google.com/maps/place/?q=place_id:${selectedArticles?.place_id}`}
-              >
-                {selectedArticles?.address}
-              </Link>
-            </>
-          ) : (
-            <Link
-              className="font-display text-2xl font-bold hover:underline"
-              href={`https://www.google.com/maps/place/?q=place_id:${selectedArticles?.place_id}`}
-            >
-              {selectedArticles?.address}
-            </Link>
-          )}
-        </DialogTitle>
-        {loading ? (
-          <div className="flex h-full w-full items-center justify-center">
-            <LoadingDots aria-label="Loading" />
-          </div>
-        ) : (
-          selectedArticles?.articles?.length && (
-            <div className="flex flex-col gap-1">
-              {selectedArticles?.articles?.map((article) => (
-                <ArticleLineItem
-                  key={article.uuid3}
-                  article={article}
-                  showLocationInfo={selectedArticlesLocationNames.length > 1}
-                />
-              ))}
-            </div>
-          )
-        )}
-      </Modal>
-      <div className="flex h-full min-h-[calc(100vh-6rem)] w-full flex-col items-center justify-center py-12">
+        selectedArticles={selectedArticles}
+        loading={loading}
+      />
+      <div className="flex h-full w-full flex-col items-center justify-center pb-8 pt-16">
         <div
           ref={mapElement as React.RefObject<HTMLDivElement>}
-          className="map-container h-[600px] w-full"
+          className="map-container h-[calc(100vh-12rem)] w-full"
         />
       </div>
       <About />
     </>
   );
 
-  function initializeMap(mapElement: React.MutableRefObject<HTMLDivElement | undefined>) {
+  function initializeMap(
+    mapElement: React.MutableRefObject<HTMLDivElement | undefined>,
+  ) {
     const osmLayer = new TileLayer({
       preload: Infinity,
       source: new OSM(),
@@ -200,11 +144,13 @@ export default function MapComponent() {
       await handleFeatureClick(feature);
     });
 
-    map.on('pointermove', (event) => {
+    map.on("pointermove", (event) => {
       const hit = map.hasFeatureAtPixel(event.pixel);
-      map.getTargetElement().style.cursor = hit ? 'pointer' : '';
+      map.getTargetElement().style.cursor = hit ? "pointer" : "";
     });
 
     return () => map.setTarget(undefined);
   }
-}
+};
+
+export default MapComponent;

@@ -68,7 +68,7 @@ const ArticleLineItem = ({
       <ModifiedEntriesWithDots
         article={article}
         entries={["headline", "feed_name"]}
-        className="text-md"
+        className="text-md leading-[1.375rem]"
       />
       <ModifiedEntriesWithDots
         article={article}
