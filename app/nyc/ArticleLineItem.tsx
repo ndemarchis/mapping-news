@@ -42,13 +42,12 @@ const ModifiedEntriesWithDots = ({
     className={`*:after:px-[0.375rem] [&>*:not(:last-child)]:after:content-['·'] ${className}`}
   >
     {entries
-      .map((entry, index) =>
-        entryModifiers[entry] ? (
-          entryModifiers[entry]?.(article[entry] || "", index)
-        ) : (
-          <span key={index}>{article[entry]}</span>
-        ),
-      )
+      .map((entry, index) => {
+        const modifier = entryModifiers[entry];
+        // @ts-ignore TODO: fix
+        if (modifier) return modifier?.(article[entry], index);
+        return <span key={index}>{article[entry]}</span>;
+      })
       .filter(Boolean)}
   </div>
 );
