@@ -94,9 +94,13 @@ export async function GET() {
     return Response.error();
   }
 
+  const filteredData = data.filter(isPartiallyNullablePoint);
+
+  console.log(`returning GeoJSON for ${filteredData.length} locations`);
+
   const geoJson: GeoJSON.FeatureCollection = {
     type: "FeatureCollection",
-    features: data.filter(isPartiallyNullablePoint).map((location) => ({
+    features: filteredData.map((location) => ({
       type: "Feature" as const,
       geometry: {
         type: "Point" as const,

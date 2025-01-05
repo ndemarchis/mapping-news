@@ -36,6 +36,7 @@ export type Database = {
     Tables: {
       articles: {
         Row: {
+          archived: boolean | null;
           author: string | null;
           created_at: string;
           feed_name: string | null;
@@ -45,6 +46,7 @@ export type Database = {
           uuid3: string;
         };
         Insert: {
+          archived?: boolean | null;
           author?: string | null;
           created_at?: string;
           feed_name?: string | null;
@@ -54,6 +56,7 @@ export type Database = {
           uuid3: string;
         };
         Update: {
+          archived?: boolean | null;
           author?: string | null;
           created_at?: string;
           feed_name?: string | null;
@@ -162,10 +165,19 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      get_sorted_location_article_relations: {
+        Args: {
+          p_place_id: string;
+        };
+        Returns: {
+          article_uuid: string;
+          location_name: string;
+          articles: Json;
+        }[];
+      };
     };
     Enums: {
-      [_ in never]: never;
+      "Article Status": "ARCHIVED" | "UNDEFINED";
     };
     CompositeTypes: {
       [_ in never]: never;

@@ -1,12 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, PostgrestSingleResponse } from "@supabase/supabase-js";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Database } from "../../database.types";
 
-type ResponseData = {
-  message: string;
-};
-
-type PlaceId = Database["public"]["Tables"]["locations"]["Row"]["place_id"];
+type Article = Database["public"]["Tables"]["articles"]["Row"];
 
 export async function GET(
   request: Request,
@@ -19,16 +15,17 @@ export async function GET(
     process.env.SUPABASE_API_KEY || "",
   );
 
-  let { data, error } = await supabase
-    .from("location_article_relations")
-    .select(
-      `
-        article_uuid, 
-        location_name,
-        articles (*)
-			`,
-    )
-    .eq("place_id", slug);
+  let returned = (await supabase.rpc("get_sorted_location_article_relations", {
+    p_place_id: slug,
+  })) as PostgrestSingleResponse<
+    {
+      article_uuid: string;
+      location_name: string;
+      articles: Article | null;
+    }[]
+  >;
+
+  const { data, error } = returned;
 
   if (error) {
     console.error(error);
@@ -47,16 +44,4 @@ export async function GET(
       }))
       .filter(Boolean),
   );
-
-  //   const { data: relations, error: relationsError } = await supabase
-  //     .from("location_article_relations")
-  //     .select("article_uuid") // Assuming the foreign key column in `location_article_relations` is `article_uuid`
-  //     .eq("place_id", slug);
-
-  //   const { data, error } = await supabase
-  //     .from("articles")
-  //     .select("*")
-  //     .in("uuid3", relations?.map((relation) => relation.article_uuid) || []);
-
-  //   res.status(200).json({ message: "Hello from Next.js!" });
 }
