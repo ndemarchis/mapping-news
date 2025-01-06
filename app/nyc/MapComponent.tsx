@@ -59,7 +59,7 @@ const MapComponent = () => {
 
   const { isMobile } = useMediaQuery();
   const sizeDependentDotStyles = {
-    radius: isMobile ? 7 : 5,
+    radius: isMobile ? 8 : 5,
     strokeWidth: isMobile ? 3 : 2,
   };
 

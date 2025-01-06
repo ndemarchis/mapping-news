@@ -20,6 +20,12 @@ you can then run the program as needed
 poetry run python actions/feedParser.py
 ```
 
+and to start the frontend server
+
+```bash
+npm run dev
+```
+
 # wuh-huh? why?
 
 read more on the [about page for the project](https://mapping.news/about).
