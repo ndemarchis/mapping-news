@@ -165,6 +165,25 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      calculate_time_decay: {
+        Args: {
+          pub_date: string;
+        };
+        Returns: number;
+      };
+      get_location_stats: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          place_id: string;
+          lat: number;
+          lon: number;
+          formatted_address: string;
+          types: string[];
+          count: number;
+          raw_count: number;
+          pub_date: string;
+        }[];
+      };
       get_sorted_location_article_relations: {
         Args: {
           p_place_id: string;

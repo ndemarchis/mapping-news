@@ -26,6 +26,9 @@ type NullableLocation = {
   lon: number | null;
   place_id: string;
   types: string[] | null;
+  count: number | null;
+  raw_count: number | null;
+  pub_date: string | null;
 };
 
 type RequiredLocationAttrs = Pick<NullableLocation, "lat" | "lon">;
@@ -55,8 +58,7 @@ export async function GET() {
     error: PostgrestError | null;
   }> => {
     const returned = await supabase
-      .from("locations")
-      .select("*")
+      .rpc("get_location_stats")
       .range(start, start + 1000);
 
     const data = returned.data || [];
@@ -85,6 +87,9 @@ export async function GET() {
 
   const { data, error } = await getDataRecursive();
 
+  console.log(`fetched ${data?.length} locations`);
+  console.log(JSON.stringify(data?.[0], null, 2));
+
   if (!data) {
     return Response.json([]);
   }
@@ -110,6 +115,9 @@ export async function GET() {
         place_id: location.place_id,
         title: location.formatted_address,
         location_type: location.types,
+        count: location.count,
+        raw_count: location.raw_count,
+        pub_date: location.pub_date,
       },
     })),
   };

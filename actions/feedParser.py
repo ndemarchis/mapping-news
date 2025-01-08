@@ -269,7 +269,7 @@ def add_article_location(article: FeedItem) -> CustomFeedItem:
     completion = client.beta.chat.completions.parse(
         model="gpt-4o-mini-2024-07-18",
         messages=[
-            {"role": "system", "content": "Extract all physical addresses from the text."},
+            {"role": "system", "content": "Your goal is to extract information for all physical locations mentioned in the text that will eventually be sent to a geocoding API. You should include points of interest, cross streets, addresses, and institutions like courthouses, schools, hospitals and universities. If the location mentioned is not specific enough to be narrowed to a point on a map, like a neighborhood, city, region, state, or country, you should not return it. If the name of a point of interest is mentioned, but doesn't include an address, you should return that and include a neighborhood or city name if possible. Intersections and cross streets should be returned with relevant contextual information like neighborhood or city."},
             {"role": "user", "content": article.get("content") or ""},
         ],
         response_format=AddressArray,

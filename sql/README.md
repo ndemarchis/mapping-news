@@ -1,0 +1,1 @@
+This directory backs up SQL snippets that are stored on Supabase's platform.

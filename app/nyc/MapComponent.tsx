@@ -59,24 +59,35 @@ const MapComponent = () => {
 
   const { isMobile } = useMediaQuery();
   const sizeDependentDotStyles = {
-    radius: isMobile ? 8 : 5,
+    radius: isMobile ? 8 : 4,
     strokeWidth: isMobile ? 3 : 2,
   };
 
+  const getRadius = (count: number) => {
+    return sizeDependentDotStyles.radius;
+  };
+
+  const getColor = (index: number) => {
+    return "rgba(0, 0, 255, 0.5)";
+  };
+
   const dotStyle = useCallback(
-    (feature: FeatureLike) =>
-      new Style({
+    (feature: FeatureLike) => {
+      const radius = getRadius(feature.get("count"));
+      const color = getColor(0);
+      return new Style({
         image: new Circle({
           stroke: new Stroke({
             width: sizeDependentDotStyles.strokeWidth,
             color: "rgba(255, 255, 255, 0.5)",
           }),
           fill: new Fill({
-            color: "rgba(0, 0, 255, 0.5)",
+            color,
           }),
-          radius: sizeDependentDotStyles.radius,
+          radius,
         }),
-      }),
+      });
+    },
     [sizeDependentDotStyles.radius, sizeDependentDotStyles.strokeWidth],
   );
 
