@@ -64,7 +64,11 @@ const MapComponent = () => {
   };
 
   const getRadius = (count: number) => {
-    return sizeDependentDotStyles.radius;
+    if (!(count >= 0)) return sizeDependentDotStyles.radius;
+    return (
+      sizeDependentDotStyles.radius *
+      Math.max(1, Math.log(count) / Math.log(2.2) + 1)
+    );
   };
 
   const getColor = (index: number) => {
