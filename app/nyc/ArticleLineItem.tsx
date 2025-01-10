@@ -1,56 +1,10 @@
 import Link from "@/components/shared/link";
+import * as Collapsible from "@radix-ui/react-collapsible";
 import { ArticleDefinition } from "./types";
-
-const entryModifiers: Partial<{
-  [K in keyof ArticleDefinition]: (
-    value: ArticleDefinition[K],
-    index?: number,
-  ) => JSX.Element | null;
-}> = {
-  pub_date: (value, index) => {
-    if (!value) return null;
-    return <span key={index}>{new Date(value).toDateString()}</span>;
-  },
-  headline: (value, index) => {
-    if (!value) return null;
-    return (
-      <span className="font-bold" key={index}>
-        {value}
-      </span>
-    );
-  },
-  location_name: (value, index) => {
-    if (!value) return null;
-    return (
-      <span key={index}>
-        this location was approximately called {value} in this article
-      </span>
-    );
-  },
-};
-
-const ModifiedEntriesWithDots = ({
-  article,
-  entries,
-  className,
-}: {
-  article: ArticleDefinition;
-  entries: (keyof ArticleDefinition)[];
-  className?: string;
-}) => (
-  <div
-    className={`*:after:px-[0.375rem] [&>*:not(:last-child)]:after:content-['·'] ${className}`}
-  >
-    {entries
-      .map((entry, index) => {
-        const modifier = entryModifiers[entry];
-        // @ts-ignore TODO: fix
-        if (modifier) return modifier?.(article[entry], index);
-        return <span key={index}>{article[entry]}</span>;
-      })
-      .filter(Boolean)}
-  </div>
-);
+import { ModifiedEntriesWithDots } from "./ModifiedEntries";
+import { useState } from "react";
+import { ChevronRight } from "lucide-react";
+import { Database } from "./live/database.types";
 
 const ArticleLineItem = ({
   article,
@@ -59,28 +13,70 @@ const ArticleLineItem = ({
   article: ArticleDefinition;
   showLocationInfo?: boolean;
 }) => {
+  const [open, setOpen] = useState(false);
+  const [data, setData] = useState<
+    Database["public"]["Tables"]["location_article_relations"]["Row"][] | null
+  >(null);
+  const onOpenChange: Collapsible.CollapsibleProps["onOpenChange"] = (open) => {
+    if (open && article?.uuid3 && !data) {
+      fetch(`/nyc/live/locations/${article.uuid3}`)
+        .then((response) => response.json())
+        .then((data) => {
+          setData(data);
+        })
+        .catch((error) => {
+          console.error(error);
+          setData(null);
+        });
+    }
+    setOpen(open);
+  };
+  const conditionalLocationName = (["location_name"] as const).filter(() =>
+    Boolean(showLocationInfo),
+  );
+
   return (
-    <Link
-      className="flex flex-col gap-1 rounded-md px-4 py-2 hover:bg-slate-200"
-      href={article.link as string}
-    >
-      <ModifiedEntriesWithDots
-        article={article}
-        entries={["headline", "feed_name"]}
-        className="text-md leading-[1.375rem]"
-      />
-      <ModifiedEntriesWithDots
-        article={article}
-        entries={[
-          "pub_date",
-          "author",
-          ...(["location_name"].filter(() => Boolean(showLocationInfo)) as
-            | ["location_name"]
-            | []),
-        ]}
-        className="text-xs text-gray-500"
-      />
-    </Link>
+    <Collapsible.Root open={open} onOpenChange={onOpenChange} asChild>
+      <div className="flex flex-col gap-1 rounded-md px-4 py-2 hover:bg-slate-200">
+        <Link className="flex flex-col gap-1" href={article.link as string}>
+          <ModifiedEntriesWithDots
+            article={article}
+            entries={["headline", "feed_name"]}
+            className="text-md leading-[1.375rem]"
+          />
+          <ModifiedEntriesWithDots
+            article={article}
+            entries={["pub_date", "author", ...conditionalLocationName]}
+            className="text-xs text-gray-500"
+          />
+        </Link>
+        <Collapsible.Trigger asChild>
+          <button className="flex flex-row items-center gap-2 text-xs text-gray-500">
+            <span>See other locations this article mentioned</span>
+            <ChevronRight
+              className={`h-3 w-3 transition-all`}
+              style={{ rotate: open ? "90deg" : "0deg" }}
+            />
+          </button>
+        </Collapsible.Trigger>
+        <Collapsible.Content>
+          {data?.length && (
+            <ul className="list-disc pl-4">
+              {data.map((relation, index) => (
+                <li key={`${relation.id}${index}`}>
+                  <Link
+                    href={`https://www.google.com/maps/place/?q=place_id:${relation?.place_id}`}
+                    className="text-xs text-gray-500"
+                  >
+                    {relation.location_name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Collapsible.Content>
+      </div>
+    </Collapsible.Root>
   );
 };
 
