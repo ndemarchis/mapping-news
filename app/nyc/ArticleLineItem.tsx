@@ -65,7 +65,7 @@ const ArticleLineItem = ({
               {data.map((relation, index) => (
                 <li key={`${relation.id}${index}`}>
                   <Link
-                    href={`https://www.google.com/maps/search/?api=1&query_place_id=${relation?.place_id}`}
+                    href={`https://www.google.com/maps/search/?api=1&query=${relation?.location_name}&query_place_id=${relation?.place_id}`}
                     className="text-xs text-gray-500"
                   >
                     {relation.location_name}
