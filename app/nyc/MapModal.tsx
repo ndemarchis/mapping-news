@@ -35,7 +35,7 @@ const MapModal = ({
             </span>
             <Link
               className="text-xs text-gray-500 hover:underline"
-              href={`https://www.google.com/maps/place/?q=place_id:${selectedArticles?.place_id}`}
+              href={`https://www.google.com/maps/search/?api=1&query_place_id=${selectedArticles?.place_id}`}
             >
               {selectedArticles?.address}
             </Link>
