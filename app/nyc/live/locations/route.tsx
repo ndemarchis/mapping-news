@@ -88,7 +88,6 @@ export async function GET() {
   const { data, error } = await getDataRecursive();
 
   console.log(`fetched ${data?.length} locations`);
-  console.log(JSON.stringify(data?.[0], null, 2));
 
   if (!data) {
     return Response.json([]);

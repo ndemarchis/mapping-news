@@ -20,6 +20,16 @@ import Fill from "ol/style/Fill";
 import MapModal from "./MapModal";
 import useMediaQuery from "@/lib/hooks/use-media-query";
 
+function percentageToColor(
+  percentage: number,
+  maxHue = 120,
+  minHue = 0,
+  a = 50,
+) {
+  const hue = percentage * (maxHue - minHue) + minHue;
+  return `hsl(${hue} 100% 50% / ${a}%)`;
+}
+
 const MapComponent = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -71,14 +81,20 @@ const MapComponent = () => {
     );
   };
 
-  const getColor = (index: number) => {
-    return "rgba(0, 0, 255, 0.5)";
+  const getColor = (date: string) => {
+    const dateObj = new Date(date);
+    // TODO: FIX THIS
+    const now = new Date();
+    const daysDiff =
+      (now.getTime() - dateObj.getTime()) / (1000 * 60 * 60 * 24);
+    const percentage = Math.E ** -Math.abs(daysDiff / 2);
+    return percentageToColor(percentage, 255, 195);
   };
 
   const dotStyle = useCallback(
     (feature: FeatureLike) => {
       const radius = getRadius(feature.get("count"));
-      const color = getColor(0);
+      const color = getColor(feature.get("pub_date"));
       return new Style({
         image: new Circle({
           stroke: new Stroke({
