@@ -45,5 +45,6 @@ next-env.d.ts
 
 /bin/
 /lib/
+/actions/__pycache__/
 
 /local_cache/

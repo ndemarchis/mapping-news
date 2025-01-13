@@ -60,10 +60,15 @@ class GeoBoundaries(TypedDict):
     maxLat: float
     maxLon: float
 
-class Feed(TypedDict):
+class OptionalGeoBoundaries(TypedDict, total=False):
+    minLat: Optional[float]
+    minLon: Optional[float]
+    maxLat: Optional[float]
+    maxLon: Optional[float]
+
+class Feed(OptionalGeoBoundaries):
     name: str
     url: str
-    geo: Optional[GeoBoundaries]
 
 class FeedItem(TypedDict, total=False):
     title: Optional[str]
@@ -107,8 +112,14 @@ def file_exists(file_path: Path) -> bool:
 def load_feeds() -> List[Feed]:
     """Get the list of RSS feeds from the file."""
     data = read_file_csv(FEED_FILE)
-    feeds: List[Feed] = data.to_dict(orient="records")
+    feeds: List[Feed] = data.to_dict("records", into=Feed)
     return feeds
+
+def load_seen_articles_cloud() -> List[Hash]:
+    """Get the list of article uuid3s that have been seen before from local cache."""
+    if file_exists(CACHE_DIRECTORY / "articles_CLOUD.json"):
+        return json.loads(read_file(CACHE_DIRECTORY / "articles_CLOUD.json"))
+    return []
 
 def load_seen_articles() -> List[Hash]:
     """Get the list of article uuid3s that have been seen before from local cache."""
@@ -116,7 +127,7 @@ def load_seen_articles() -> List[Hash]:
         return json.loads(read_file(CACHE_DIRECTORY / "articles.json"))
     return []
 
-def load_seen_locations() -> List[LocationsDefinition]:
+def load_seen_locations() -> List[PlaceId]:
     """Get the list of location place_ids that have been seen before from local cache."""
     if file_exists(CACHE_DIRECTORY / "locations.json"):
         return json.loads(read_file(CACHE_DIRECTORY / "locations.json"))
@@ -137,7 +148,7 @@ def save_seen_articles(seen_articles: List[Hash]) -> None:
     """Note that this functions slightly differently than the other two."""
     write_file(CACHE_DIRECTORY / "articles.json", json.dumps(list(seen_articles), ensure_ascii=False))
 
-def save_seen_locations(seen_locations: List[LocationsDefinition]) -> None:
+def save_seen_locations(seen_locations: List[PlaceId]) -> None:
     write_file(CACHE_DIRECTORY / "locations_local.json", json.dumps(list(seen_locations), ensure_ascii=False))
 
 def save_location_aliases(seen_location_aliases: List[LocationAliasDefinition]) -> None:
@@ -155,8 +166,18 @@ def refresh_cache_from_db() -> None:
     # TODO: Add pagination
     # TODO: Better compare data to existing and alert to inconsistencies
 
-    prelim_articles = supabase.table("articles").select("uuid3").execute()
-    articles = set([article["uuid3"] for article in prelim_articles.data])
+    prelim_articles_data = []
+
+    # create recursive function to get all articles
+    def get_all_articles(index: int = 0) -> None:
+        response = supabase.table("articles").select("*").range(index, index + 1000).execute()
+        prelim_articles_data.extend(response.data)
+        if len(response.data) == 1000:
+            get_all_articles(index + 1000)
+
+    get_all_articles()
+
+    articles = set([article["uuid3"] for article in prelim_articles_data])
     write_file(CACHE_DIRECTORY / "articles_CLOUD.json", json.dumps(list(articles), ensure_ascii=False))
 
     prelim_locations = supabase.table("locations").select("place_id").execute()
@@ -195,31 +216,33 @@ async def parse_feed(feed: Feed) -> List[FeedItem]:
 
 async def fetch_new_articles() -> List[FeedItem]:
     """Check RSS feeds for new articles that are not included in the local cache."""
-    seen_articles = load_seen_articles()
+    seen_articles: List[Hash] = load_seen_articles()
     new_articles: List[FeedItem] = []
 
     feeds = load_feeds()
 
-    TEMP_ARTICLES_LIMIT = 1001
+    TEMP_ARTICLES_LIMIT = 1001.5
     articles_count = 0
 
     for feed in feeds:
         print(f"0. {feed['name']} (Parsing)")
+        if (articles_count >= TEMP_ARTICLES_LIMIT):
+            continue
         articles = await parse_feed(feed)
         for article in articles:
             hashed_id = hash(article.get("id"))
-            if not hashed_id:
+            if not hashed_id or (articles_count >= TEMP_ARTICLES_LIMIT):
                 continue
             if hashed_id in seen_articles:
                 # print(f"    (Seen: {article.get('title', '')})")
                 continue
-            if (articles_count < TEMP_ARTICLES_LIMIT):
-                print(f"    (New: {article.get('title', '')})")
-                articles_count += 1
-                new_articles.append(article)
-                seen_articles.append(hashed_id)
 
-    save_seen_articles(seen_articles)
+            print(f"    (New: {article.get('title', '')})")
+            articles_count += 1
+            new_articles.append(article)
+            seen_articles.append(hashed_id)
+
+    # save_seen_articles(seen_articles)
     return new_articles
 
 async def scrap(url: Optional[str]) -> str:
@@ -258,7 +281,7 @@ def add_article_locations(articles: List[FeedItem]) -> List[CustomFeedItem]:
 
 def filter_parsed_locations(locations: List[str]) -> List[str]:
     """Remove API-parsed locations with fewer than 3 words."""
-    return [location for location in locations if len(location.split()) > 2]
+    return [location for location in locations if len(location.split()) >= 2]
 
 def add_article_location(article: FeedItem) -> CustomFeedItem:
     key = os.getenv("OPENAI_API_KEY")
@@ -269,7 +292,7 @@ def add_article_location(article: FeedItem) -> CustomFeedItem:
     completion = client.beta.chat.completions.parse(
         model="gpt-4o-mini-2024-07-18",
         messages=[
-            {"role": "system", "content": "Your goal is to extract information for all physical locations mentioned in the text that will eventually be sent to a geocoding API. You should include points of interest, cross streets, addresses, and institutions like courthouses, schools, hospitals and universities. If the location mentioned is not specific enough to be narrowed to a point on a map, like a neighborhood, city, region, state, or country, you should not return it. If the name of a point of interest is mentioned, but doesn't include an address, you should return that and include a neighborhood or city name if possible. Intersections and cross streets should be returned with relevant contextual information like neighborhood or city."},
+            {"role": "system", "content": "Your goal is to extract information for all physical locations mentioned in the text that will eventually be sent to a geocoding API. You should include points of interest, cross streets, addresses, and institutions like courthouses, schools, hospitals and universities. You should exdlude broad places like neighborhoods, cities, regions, states, and countries. If the name of a point of interest is mentioned, but doesn't include an address, you should return that and include a neighborhood if possible. Intersections and cross streets should be returned with relevant contextual information like neighborhood or city. Examples to include: 'The White House', 'Sal's Restaurant in the Lower East Side', '123 Main Street, Midtown', 'South Street and West Street in Midtown'. Examples to exclude: 'New York City', 'The Bronx'. If you are unable to find any locations, please return an empty array."},
             {"role": "user", "content": article.get("content") or ""},
         ],
         response_format=AddressArray,
@@ -287,14 +310,18 @@ def add_article_location(article: FeedItem) -> CustomFeedItem:
 def filter_new_geocoded_full_locations(new_geocoded_full_locations: List[LocationsDefinition]) -> List[LocationsDefinition]:
     """Filter out locations that are already in the cache, and remove duplicate entries based on their place_id."""
     seen_locations = load_seen_locations()
-    unseen_locations = [
-        location for location in new_geocoded_full_locations 
-        if location["place_id"] not in seen_locations
-    ]
+    unseen_locations: List[LocationsDefinition] = []
+
+    for location in new_geocoded_full_locations:
+        if location["place_id"] not in seen_locations:
+            unseen_locations.append(location)
+
+        else:
+            print(f"    (Seen: {location['formatted_address']})")
 
     return list({location["place_id"]: location for location in unseen_locations}.values())
 
-def get_geo_boundaries(article: CustomFeedItem) -> GeoBoundaries | None:
+def get_geo_boundaries(article: CustomFeedItem) -> OptionalGeoBoundaries | None:
     """Get the geo boundaries for the feed, if present."""
     if article["item"]["feed"]:
         return {
@@ -323,7 +350,7 @@ async def add_geocoded_locations(articles: List[CustomFeedItem]) -> GeocodingRes
         "new_geocoded_full_locations": filtered_new_geocoded_full_locations
     }
 
-async def add_geocoded_location(article: CustomFeedItem, add_new_geocoded_location: Callable[[LocationsDefinition], None], geo_boundaries: Optional[GeoBoundaries]) -> CustomFeedItem:
+async def add_geocoded_location(article: CustomFeedItem, add_new_geocoded_location: Callable[[LocationsDefinition], None], geo_boundaries: Optional[OptionalGeoBoundaries]) -> CustomFeedItem:
     locations = article["locations"]
 
     geocoded_locations = await geocode_locations(locations, add_new_geocoded_location, geo_boundaries)
@@ -332,7 +359,7 @@ async def add_geocoded_location(article: CustomFeedItem, add_new_geocoded_locati
         "locations": geocoded_locations,
     }
 
-async def geocode_locations(locations: GeocodedLocations, add_new_geocoded_location: Callable[[LocationsDefinition], None], geo_boundaries: Optional[GeoBoundaries]) -> GeocodedLocations:
+async def geocode_locations(locations: GeocodedLocations, add_new_geocoded_location: Callable[[LocationsDefinition], None], geo_boundaries: Optional[OptionalGeoBoundaries]) -> GeocodedLocations:
     """For each location, make a request to Google Maps API to get geocoding information."""
     
     returned_locations: GeocodedLocations = defaultdict()
@@ -368,7 +395,7 @@ def format_geocoding_results_for_cache(result: dict) -> LocationsDefinition:
         "types": result.get("types"),
     }
 
-async def geocode_location(location: str, add_new_geocoded_location: Callable[[LocationsDefinition], None], geo_boundaries: Optional[GeoBoundaries]) -> PlaceId | None:
+async def geocode_location(location: str, add_new_geocoded_location: Callable[[LocationsDefinition], None], geo_boundaries: Optional[OptionalGeoBoundaries]) -> PlaceId | None:
     """Make a request to Google Maps API to get geocoding information. Returns the place_id."""
 
     cached_location = get_location_in_alias_cache(location)
@@ -406,7 +433,7 @@ async def geocode_location(location: str, add_new_geocoded_location: Callable[[L
     add_new_geocoded_location(formatted_location)
     return formatted_location["place_id"]
 
-def is_valid_feed_item(item: CustomFeedItem) -> bool:
+def is_feed_item_with_locations(item: CustomFeedItem) -> bool:
     """Filter out feed items that don't have any locations."""
     if not item["locations"]:
         return False
@@ -414,14 +441,32 @@ def is_valid_feed_item(item: CustomFeedItem) -> bool:
 
 def filter_and_reorganize_articles(items: List[CustomFeedItem]) -> List[ArticlesDefinition]:
     """Filter out feed items that don't have any locations."""
-    return [{
-        "uuid3": hash(item["item"].get("id")),
-        "headline": item["item"].get("title"),
-        "link": item["item"].get("link"),
-        "pub_date": item["item"].get("pub_date"),
-        "author": item["item"].get("author"),
-        "feed_name": item["item"]["feed"].get("name") if item["item"]["feed"] else None,
-    } for item in items if is_valid_feed_item(item)]
+
+    to_return = []
+    for item in items:
+        to_add: ArticlesDefinition
+        if not is_feed_item_with_locations(item):
+            to_add = {
+                "uuid3": hash(item["item"].get("id")),
+                "headline": None,
+                "link": item["item"].get("link"),
+                "pub_date": None,
+                "author": None,
+                "feed_name": None,
+            }
+        else:
+            to_add = {
+                "uuid3": hash(item["item"].get("id")),
+                "headline": item["item"].get("title"),
+                "link": item["item"].get("link"),
+                "pub_date": item["item"].get("pub_date"),
+                "author": item["item"].get("author"),
+                "feed_name": item["item"]["feed"].get("name") if item["item"]["feed"] else None,
+            }
+        
+        to_return.append(to_add)
+            
+    return to_return
 
 def generate_location_article_relations(items: List[CustomFeedItem]) -> List[LocationArticleRelationsDefinition]:
     """Generate the location-article relations."""
@@ -430,11 +475,13 @@ def generate_location_article_relations(items: List[CustomFeedItem]) -> List[Loc
     to_return: List[LocationArticleRelationsDefinition] = []
 
     for item in items:
-        if not is_valid_feed_item(item):
+        if not is_feed_item_with_locations(item):
             continue
         for location in item["locations"]:
             article_uuid = hash(item["item"].get("id"))
             place_id = item["locations"][location]
+            if not place_id or not article_uuid: 
+                continue
             to_return.append({
                 "id": hash(f"{article_uuid}-{place_id}"),
                 "article_uuid": article_uuid,
@@ -452,7 +499,9 @@ def send_articles_to_db(articles: List[ArticlesDefinition]) -> None:
     supabase = create_client(supabase_url, supabase_key)
 
     print(f"- 4. Sending {len(articles)} articles to Supabase")
+    print(f"    {len([article for article in articles if article['headline']])} with location data, {len([article for article in articles if not article['headline']])} without")
 
+    pass
     supabase.table("articles").insert(articles, upsert=True).execute()
 
 def send_locations_to_db(locations: List[LocationsDefinition]) -> None:
@@ -481,8 +530,9 @@ def handle_articles_result(new_articles_with_geocoded_locations: List[ArticlesDe
 def handle_locations_result(new_geocoded_full_locations: List[LocationsDefinition]) -> None:
     """Add the new geocoded locations to the cache."""
     seen_locations = load_seen_locations()
-    seen_locations.extend(new_geocoded_full_locations)
-    save_seen_locations(seen_locations)
+    seen_locations.extend([location["place_id"] for location in new_geocoded_full_locations])
+    save_seen_locations([location for location in seen_locations])
+    pass
     send_locations_to_db(new_geocoded_full_locations)
 
 def handle_location_article_relations_result(new_location_article_relations: List[LocationArticleRelationsDefinition]) -> None:
