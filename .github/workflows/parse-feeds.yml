@@ -9,6 +9,7 @@ on:
 jobs:
   parse-feeds:
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       # Step 1: Check out the repository
@@ -31,3 +32,8 @@ jobs:
       # Step 4: Run the feed parser script
       - name: Run feed parser script
         run: poetry run python actions/feedParser.py
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
