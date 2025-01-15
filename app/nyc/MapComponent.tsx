@@ -133,6 +133,24 @@ const MapComponent = () => {
     </>
   );
 
+  function fetchVectorSources(
+    page = 0,
+  ): VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>[] {
+    const PAGE_SIZE = 200;
+    const vectorSource = new VectorSource({
+      url: `/nyc/live/locations?page=${page}`,
+      format: new GeoJSON(),
+    });
+    const features = vectorSource.getFeatures();
+    if (features.length < PAGE_SIZE)
+      return [new VectorLayer({ source: vectorSource })];
+
+    return [
+      new VectorLayer({ source: vectorSource, style: dotStyle }),
+      ...fetchVectorSources(page + 1),
+    ];
+  }
+
   function initializeMap(
     mapElement: React.MutableRefObject<HTMLDivElement | undefined>,
   ) {
