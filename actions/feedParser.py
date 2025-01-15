@@ -5,9 +5,9 @@ from collections import defaultdict
 import json
 import asyncio
 import aiohttp
-import feedparser
+import feedparser # type: ignore
 import os
-from newspaper import Article
+from newspaper import Article # type: ignore
 from pydantic import BaseModel
 from openai import OpenAI
 import pandas as pd
@@ -16,8 +16,7 @@ from supabase import create_client, Client
 import hashlib
 
 FEED_FILE = Path(__file__).resolve().parent / "../public/feeds/feeds.csv"
-CACHE_FILE = Path(__file__).resolve().parent / "../cache.json"
-CACHE_DIRECTORY = Path(__file__).resolve().parent / "../local_cache/"
+CACHE_DIRECTORY = Path(__file__).resolve().parent / "../cache/"
 FILTERABLE_LOCATION_TYPES = ["political", "country", "administrative_area_level_1", "administrative_area_level_2","locality","sublocality","neighborhood","postal_code"]
 
 Hash = str
@@ -103,6 +102,10 @@ def read_file(file_path: Path) -> str:
         return f.read()
 
 def write_file(file_path: Path, data: str) -> None:
+    if not file_path.parent.exists():
+        file_path.parent.mkdir(parents=True)
+    if not file_path.exists():
+        file_path.touch()
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(data)
 
@@ -112,7 +115,14 @@ def file_exists(file_path: Path) -> bool:
 def load_feeds() -> List[Feed]:
     """Get the list of RSS feeds from the file."""
     data = read_file_csv(FEED_FILE)
-    feeds: List[Feed] = data.to_dict("records", into=Feed)
+    feeds: List[Feed] = [{
+        "name": item["name"], 
+        "url": item["url"], 
+        "minLat": item["minLat"], 
+        "minLon": item["minLon"], 
+        "maxLat": item["maxLat"], 
+        "maxLon": item["maxLon"]
+    } for item in data.to_dict("records")]
     return feeds
 
 def load_seen_articles_cloud() -> List[Hash]:
@@ -157,35 +167,43 @@ def save_location_aliases(seen_location_aliases: List[LocationAliasDefinition]) 
 def save_location_article_relations(location_article_relations: List[LocationArticleRelationsDefinition]) -> None:
     write_file(CACHE_DIRECTORY / "location_article_relations_local.json", json.dumps(location_article_relations, ensure_ascii=False))
 
+def get_server_articles_recursive(supabase: Client, index: int = 0) -> List[dict]:
+    response = supabase.table("articles").select("*").range(index, index + 1000).execute()
+    if len(response.data) == 1000:
+        return response.data + get_server_articles_recursive(supabase, index + 1000)
+    return response.data
+
+def get_server_locations_recursive(supabase: Client, index: int = 0) -> List[dict]:
+    response = supabase.table("locations").select("place_id").range(index, index + 1000).execute()
+    if len(response.data) == 1000:
+        return response.data + get_server_locations_recursive(supabase, index + 1000)
+    return response.data
+
+def get_server_location_article_relations_recursive(supabase: Client, index: int = 0) -> List[dict]:
+    response = supabase.table("location_article_relations").select("article_uuid,place_id,location_name").range(index, index + 1000).execute()
+    if len(response.data) == 1000:
+        return response.data + get_server_location_article_relations_recursive(supabase, index + 1000)
+    return response.data
+
 def refresh_cache_from_db() -> None:
     supabase_url = os.getenv("SUPABASE_URL") or ""
     supabase_key = os.getenv("SUPABASE_API_KEY") or ""
 
     supabase = create_client(supabase_url, supabase_key)
 
-    # TODO: Add pagination
+    # TODO: Type guard results from API
     # TODO: Better compare data to existing and alert to inconsistencies
 
-    prelim_articles_data = []
-
-    # create recursive function to get all articles
-    def get_all_articles(index: int = 0) -> None:
-        response = supabase.table("articles").select("*").range(index, index + 1000).execute()
-        prelim_articles_data.extend(response.data)
-        if len(response.data) == 1000:
-            get_all_articles(index + 1000)
-
-    get_all_articles()
-
+    prelim_articles_data = get_server_articles_recursive(supabase)
     articles = set([article["uuid3"] for article in prelim_articles_data])
     write_file(CACHE_DIRECTORY / "articles_CLOUD.json", json.dumps(list(articles), ensure_ascii=False))
 
-    prelim_locations = supabase.table("locations").select("place_id").execute()
-    locations = set([location["place_id"] for location in prelim_locations.data])
+    prelim_locations = get_server_locations_recursive(supabase)
+    locations = set([location["place_id"] for location in prelim_locations])
     write_file(CACHE_DIRECTORY / "locations.json", json.dumps(list(locations), ensure_ascii=False))
 
-    prelim_location_article_relations = supabase.table("location_article_relations").select("article_uuid,place_id,location_name").execute()
-    location_article_relations = [relation for relation in prelim_location_article_relations.data]
+    prelim_location_article_relations = get_server_location_article_relations_recursive(supabase)
+    location_article_relations = [relation for relation in prelim_location_article_relations]
     write_file(CACHE_DIRECTORY / "location_article_relations.json", json.dumps(location_article_relations, ensure_ascii=False))
 
 def hash(string: Optional[str]) -> Hash:
@@ -208,15 +226,19 @@ async def parse_feed(feed: Feed) -> List[FeedItem]:
 
     url = feed.get("url", "")
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            content = await response.text()
-    parsedFeed = feedparser.parse(content)
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                content = await response.text()
+        parsedFeed = feedparser.parse(content)
+    except Exception as e:
+        print(f"Error parsing {feed.get('name', '')} feed: {e}")
+        return []
     return [{**feed_item_standardizer(item), "feed": feed} for item in parsedFeed.entries]
 
 async def fetch_new_articles() -> List[FeedItem]:
     """Check RSS feeds for new articles that are not included in the local cache."""
-    seen_articles: List[Hash] = load_seen_articles()
+    seen_articles: List[Hash] = load_seen_articles_cloud()
     new_articles: List[FeedItem] = []
 
     feeds = load_feeds()
@@ -292,7 +314,7 @@ def add_article_location(article: FeedItem) -> CustomFeedItem:
     completion = client.beta.chat.completions.parse(
         model="gpt-4o-mini-2024-07-18",
         messages=[
-            {"role": "system", "content": "Your goal is to extract information for all physical locations mentioned in the text that will eventually be sent to a geocoding API. You should include points of interest, cross streets, addresses, and institutions like courthouses, schools, hospitals and universities. You should exdlude broad places like neighborhoods, cities, regions, states, and countries. If the name of a point of interest is mentioned, but doesn't include an address, you should return that and include a neighborhood if possible. Intersections and cross streets should be returned with relevant contextual information like neighborhood or city. Examples to include: 'The White House', 'Sal's Restaurant in the Lower East Side', '123 Main Street, Midtown', 'South Street and West Street in Midtown'. Examples to exclude: 'New York City', 'The Bronx'. If you are unable to find any locations, please return an empty array."},
+            {"role": "system", "content": "Your goal is to extract all points of interest and street addresses from the text provided."},
             {"role": "user", "content": article.get("content") or ""},
         ],
         response_format=AddressArray,
@@ -522,7 +544,7 @@ def send_location_article_relations_to_db(location_article_relations: List[Locat
 
 def handle_articles_result(new_articles_with_geocoded_locations: List[ArticlesDefinition]) -> None:
     """Add the new articles to the cache."""
-    seen_articles = load_seen_articles()
+    seen_articles = load_seen_articles_cloud()
     seen_articles.extend([article["uuid3"] for article in new_articles_with_geocoded_locations])
     save_seen_articles(seen_articles)
     send_articles_to_db(new_articles_with_geocoded_locations)
