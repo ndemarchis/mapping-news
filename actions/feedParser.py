@@ -518,6 +518,10 @@ def send_articles_to_db(articles: List[ArticlesDefinition]) -> None:
     supabase_url = os.getenv("SUPABASE_URL") or ""
     supabase_key = os.getenv("SUPABASE_API_KEY") or ""
 
+    if len(articles) == 0:
+        print("No new articles to send to Supabase.")
+        return
+
     supabase = create_client(supabase_url, supabase_key)
 
     print(f"- 4. Sending {len(articles)} articles to Supabase")
@@ -530,6 +534,10 @@ def send_locations_to_db(locations: List[LocationsDefinition]) -> None:
     supabase_url = os.getenv("SUPABASE_URL") or ""
     supabase_key = os.getenv("SUPABASE_API_KEY") or ""
 
+    if len(locations) == 0:
+        print("No new locations to send to Supabase.")
+        return
+
     supabase = create_client(supabase_url, supabase_key)
     print(f"- 5. Sending {len(locations)} locations to Supabase")
     supabase.table("locations").insert(list(locations), upsert=True).execute()
@@ -537,6 +545,10 @@ def send_locations_to_db(locations: List[LocationsDefinition]) -> None:
 def send_location_article_relations_to_db(location_article_relations: List[LocationArticleRelationsDefinition]) -> None:
     supabase_url = os.getenv("SUPABASE_URL") or ""
     supabase_key = os.getenv("SUPABASE_API_KEY") or ""
+
+    if len(location_article_relations) == 0:
+        print("No new location-article relations to send to Supabase.")
+        return
 
     supabase = create_client(supabase_url, supabase_key)
     print(f"- 6. Sending {len(location_article_relations)} location-article relations to Supabase")
