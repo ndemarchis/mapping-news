@@ -162,8 +162,15 @@ const MapComponent = () => {
 
     map.addInteraction(selectClick);
     selectClick.on("select", async (e) => {
-      const features = e.selected;
-      const feature = features?.[0];
+      const selectedFeatures = e.selected;
+      const deselectedFeatures = e.deselected;
+
+      if (!selectedFeatures.length && deselectedFeatures.length) {
+        setShowModal(false);
+        return;
+      }
+
+      const feature = selectedFeatures?.[0];
       await handleFeatureClick(feature);
     });
 
