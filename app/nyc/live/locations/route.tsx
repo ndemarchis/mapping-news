@@ -4,6 +4,7 @@ import {
   PostgrestSingleResponse,
 } from "@supabase/supabase-js";
 import { Database } from "../database.types";
+import { NextRequest } from "next/server";
 
 export type Properties = {
   title: string;
@@ -45,21 +46,30 @@ const isPartiallyNullablePoint = (
   return typeof point.lat === "number" && typeof point.lon === "number";
 };
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const supabase = createClient<Database>(
     process.env.SUPABASE_URL || "",
     process.env.SUPABASE_API_KEY || "",
   );
 
-  const getDataRecursive = async (
-    start = 0,
+  const searchParams = request.nextUrl.searchParams;
+  const offsetQuery = searchParams.get("offset")
+    ? parseInt(searchParams.get("offset") as string)
+    : 0;
+  const limitQuery = searchParams.get("limit")
+    ? parseInt(searchParams.get("limit") as string)
+    : 1000;
+
+  const getData = async (
+    offset = offsetQuery,
+    limit = limitQuery,
   ): Promise<{
     data: NullableLocation[] | null;
     error: PostgrestError | null;
   }> => {
     const returned = await supabase
       .rpc("get_location_stats")
-      .range(start, start + 1000);
+      .range(offset, offset + limit);
 
     const data = returned.data || [];
     const error = returned.error;
@@ -72,20 +82,10 @@ export async function GET() {
       return { data: null, error: null };
     }
 
-    if (data.length === 1000) {
-      const recurred = await getDataRecursive(start + 1000);
-      const recurredData = recurred.data || [];
-
-      return {
-        data: [...data, ...recurredData],
-        error: recurred.error,
-      };
-    }
-
     return { data, error };
   };
 
-  const { data, error } = await getDataRecursive();
+  const { data, error } = await getData();
 
   console.log(`fetched ${data?.length} locations`);
 
