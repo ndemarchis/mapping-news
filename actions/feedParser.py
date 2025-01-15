@@ -5,9 +5,9 @@ from collections import defaultdict
 import json
 import asyncio
 import aiohttp
-import feedparser
+import feedparser # type: ignore
 import os
-from newspaper import Article
+from newspaper import Article # type: ignore
 from pydantic import BaseModel
 from openai import OpenAI
 import pandas as pd
@@ -115,7 +115,14 @@ def file_exists(file_path: Path) -> bool:
 def load_feeds() -> List[Feed]:
     """Get the list of RSS feeds from the file."""
     data = read_file_csv(FEED_FILE)
-    feeds: List[Feed] = data.to_dict("records", into=Feed)
+    feeds: List[Feed] = [{
+        "name": item["name"], 
+        "url": item["url"], 
+        "minLat": item["minLat"], 
+        "minLon": item["minLon"], 
+        "maxLat": item["maxLat"], 
+        "maxLon": item["maxLon"]
+    } for item in data.to_dict("records")]
     return feeds
 
 def load_seen_articles_cloud() -> List[Hash]:
@@ -219,10 +226,14 @@ async def parse_feed(feed: Feed) -> List[FeedItem]:
 
     url = feed.get("url", "")
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            content = await response.text()
-    parsedFeed = feedparser.parse(content)
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                content = await response.text()
+        parsedFeed = feedparser.parse(content)
+    except Exception as e:
+        print(f"Error parsing {feed.get('name', '')} feed: {e}")
+        return []
     return [{**feed_item_standardizer(item), "feed": feed} for item in parsedFeed.entries]
 
 async def fetch_new_articles() -> List[FeedItem]:
@@ -303,7 +314,7 @@ def add_article_location(article: FeedItem) -> CustomFeedItem:
     completion = client.beta.chat.completions.parse(
         model="gpt-4o-mini-2024-07-18",
         messages=[
-            {"role": "system", "content": "Your goal is to extract information for all physical locations mentioned in the text. The results you provide will eventually be sent to a geocoding API. You should include points of interest, cross streets, addresses, and institutions like courthouses, schools, hospitals and universities. You should exdlude broad places like neighborhoods, cities, regions, states, and countries. If the name of a point of interest is mentioned, but doesn't include an address, you should return that and include a neighborhood if possible. Intersections and cross streets should be returned with relevant contextual information like neighborhood or city. Examples to include: 'The White House', 'Sal's Restaurant in the Lower East Side', '123 Main Street, Midtown', 'South Street and West Street in Midtown'. Examples to exclude: 'New York City', 'The Bronx', 'Elmhurst', or obvious names of humans that don't refer to physical places of interest. If you are unable to find any locations, please return an empty array."},
+            {"role": "system", "content": "Your goal is to extract all points of interest and street addresses from the text provided."},
             {"role": "user", "content": article.get("content") or ""},
         ],
         response_format=AddressArray,
