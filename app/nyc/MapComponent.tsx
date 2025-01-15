@@ -17,8 +17,8 @@ import { ArticlesDefinition } from "./types";
 import About from "./About";
 import { FeatureLike } from "ol/Feature";
 import Fill from "ol/style/Fill";
-import MapModal from "./MapModal";
 import useMediaQuery from "@/lib/hooks/use-media-query";
+import ResponsiveSidebar from "./ResponsiveSidebar";
 
 const MapComponent = () => {
   const [showModal, setShowModal] = useState(false);
@@ -109,16 +109,16 @@ const MapComponent = () => {
 
   return (
     <>
-      <MapModal
-        showModal={showModal}
-        setShowModal={setShowModal}
-        selectedArticles={selectedArticles}
-        loading={loading}
-      />
-      <div className="flex h-full w-full flex-col items-center justify-center pb-8 pt-16">
+      <div className="flex h-full w-full flex-row items-center justify-center pb-8 pt-16">
         <div
           ref={mapElement as React.RefObject<HTMLDivElement>}
           className="map-container h-[calc(100vh-12rem)] w-full"
+        />
+        <ResponsiveSidebar
+          showModal={showModal}
+          setShowModal={setShowModal}
+          selectedArticles={selectedArticles}
+          loading={loading}
         />
       </div>
       <About />
