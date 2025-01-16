@@ -30,6 +30,8 @@ function percentageToColor(
   return `hsl(${hue} 100% 50% / ${a}%)`;
 }
 
+const PAGE_SIZE = 1000 as const;
+
 const MapComponent = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -133,6 +135,27 @@ const MapComponent = () => {
     </>
   );
 
+  async function fetchVectorSources(
+    offset: number,
+    limit: number,
+  ): Promise<
+    VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>[]
+  > {
+    const vectorSource = new VectorSource({
+      url: `/nyc/live/locations?offset=${offset}&limit=${limit}`,
+      format: new GeoJSON(),
+    });
+    const features = vectorSource.getFeatures();
+    console.log({ featuresLength: features.length, offset, limit });
+    if (features.length < PAGE_SIZE)
+      return [new VectorLayer({ source: vectorSource })];
+
+    return [
+      new VectorLayer({ source: vectorSource, style: dotStyle }),
+      ...(await fetchVectorSources(offset + limit, limit)),
+    ];
+  }
+
   function initializeMap(
     mapElement: React.MutableRefObject<HTMLDivElement | undefined>,
   ) {
@@ -141,21 +164,11 @@ const MapComponent = () => {
       source: new OSM(),
     });
 
-    const vectorSource = new VectorSource({
-      url: "/nyc/live/locations",
-      format: new GeoJSON(),
-    });
-
-    const vectorLayer = new VectorLayer({
-      source: vectorSource,
-      style: (feature, _) => {
-        return dotStyle(feature);
-      },
-    });
+    const vectorLayers = fetchVectorSources(0, 1000);
 
     const map = new Map({
       target: mapElement.current,
-      layers: [osmLayer, vectorLayer],
+      layers: [osmLayer, ...(await vectorLayers)],
       view: new View({
         center: [-8233189, 4966723],
         zoom: 11,
