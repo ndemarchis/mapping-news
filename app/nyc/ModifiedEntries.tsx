@@ -8,7 +8,18 @@ export const entryModifiers: Partial<{
 }> = {
   pub_date: (value, index) => {
     if (!value) return null;
-    return <span key={index}>{new Date(value).toDateString()}</span>;
+    const date = new Date(value);
+    if (new Date().getTime() - date.getTime() < 1000 * 60 * 60 * 36) {
+      return (
+        <span key={index}>
+          {date.toDateString()} at{" "}
+          {/* TODO: i18n */}
+          {date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+        </span>
+      );
+    } else {
+      return <span key={index}>{date.toDateString()}</span>;
+    }
   },
   headline: (value, index) => {
     if (!value) return null;
