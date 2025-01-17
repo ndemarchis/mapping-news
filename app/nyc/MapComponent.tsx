@@ -69,7 +69,7 @@ const MapComponent = () => {
 
   const { isMobile } = useMediaQuery();
   const sizeDependentDotStyles = {
-    radius: isMobile ? 8 : 4,
+    radius: isMobile ? 10 : 5,
     strokeWidth: isMobile ? 3 : 2,
   };
 
@@ -99,7 +99,27 @@ const MapComponent = () => {
         image: new Circle({
           stroke: new Stroke({
             width: sizeDependentDotStyles.strokeWidth,
-            color: "rgba(255, 255, 255, 0.5)",
+            color: "rgba(255, 255, 255, 0.35)",
+          }),
+          fill: new Fill({
+            color,
+          }),
+          radius,
+        }),
+      });
+    },
+    [sizeDependentDotStyles.radius, sizeDependentDotStyles.strokeWidth],
+  );
+
+  const selectedDotStyle = useCallback(
+    (feature: FeatureLike) => {
+      const radius = sizeDependentDotStyles.radius * 1.5;
+      const color = `rgba(255, 0, 0, 1)`;
+      return new Style({
+        image: new Circle({
+          stroke: new Stroke({
+            width: sizeDependentDotStyles.strokeWidth,
+            color: "rgba(255, 255, 255, 0.35)",
           }),
           fill: new Fill({
             color,
@@ -165,7 +185,7 @@ const MapComponent = () => {
 
     const selectClick = new Select({
       condition: click,
-      // style: selectStyle,
+      style: selectedDotStyle,
     });
 
     map.addInteraction(selectClick);
