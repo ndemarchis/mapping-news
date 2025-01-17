@@ -20,14 +20,16 @@ import Fill from "ol/style/Fill";
 import MapModal from "./MapModal";
 import useMediaQuery from "@/lib/hooks/use-media-query";
 
-function percentageToColor(
-  percentage: number,
-  maxHue = 120,
-  minHue = 0,
-  a = 50,
-) {
-  const hue = percentage * (maxHue - minHue) + minHue;
-  return `hsl(${hue} 100% 50% / ${a}%)`;
+const quad = (x: number, a: number, b: number, c: number) => {
+  return a * x ** 2 + b * x + c;
+};
+
+function percentageToColor(percentage: number) {
+  const hue = quad(percentage, 129.52, -13.52, 177);
+  const saturation = quad(percentage, 28.57, -28.57, 100);
+  const luminance = quad(percentage, -50.47, -7.52, 87);
+  const opacity = 45 + percentage * 40;
+  return `hsl(${hue} ${saturation}% ${luminance}% / ${opacity}%)`;
 }
 
 const MapComponent = () => {
@@ -88,7 +90,7 @@ const MapComponent = () => {
     const daysDiff =
       (now.getTime() - dateObj.getTime()) / (1000 * 60 * 60 * 24);
     const percentage = Math.E ** -Math.abs(daysDiff / 2);
-    return percentageToColor(percentage, 255, 195);
+    return percentageToColor(percentage);
   };
 
   const dotStyle = useCallback(
