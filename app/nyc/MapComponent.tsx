@@ -24,10 +24,13 @@ function percentageToColor(
   percentage: number,
   maxHue = 120,
   minHue = 0,
-  a = 50,
+  minOpacity = 40,
 ) {
-  const hue = percentage * (maxHue - minHue) + minHue;
-  return `hsl(${hue} 100% 50% / ${a}%)`;
+  const hue = ((maxHue - minHue) * percentage + minHue) % 360;
+  const saturation = 25 * Math.sin(2 * Math.PI * (0.25 - percentage)) + 75;
+  const luminance = 50 * (percentage - 0.6) ** 2 + 45;
+  const opacity = minOpacity + percentage * 35;
+  return `hsl(${hue} ${saturation}% ${luminance}% / ${opacity}%)`;
 }
 
 const MapComponent = () => {
@@ -69,7 +72,7 @@ const MapComponent = () => {
 
   const { isMobile } = useMediaQuery();
   const sizeDependentDotStyles = {
-    radius: isMobile ? 8 : 4,
+    radius: isMobile ? 10 : 5,
     strokeWidth: isMobile ? 3 : 2,
   };
 
@@ -88,7 +91,7 @@ const MapComponent = () => {
     const daysDiff =
       (now.getTime() - dateObj.getTime()) / (1000 * 60 * 60 * 24);
     const percentage = Math.E ** -Math.abs(daysDiff / 2);
-    return percentageToColor(percentage, 255, 195);
+    return percentageToColor(percentage, 300, 180);
   };
 
   const dotStyle = useCallback(
@@ -99,7 +102,27 @@ const MapComponent = () => {
         image: new Circle({
           stroke: new Stroke({
             width: sizeDependentDotStyles.strokeWidth,
-            color: "rgba(255, 255, 255, 0.5)",
+            color: "rgba(255, 255, 255, 0.35)",
+          }),
+          fill: new Fill({
+            color,
+          }),
+          radius,
+        }),
+      });
+    },
+    [sizeDependentDotStyles.radius, sizeDependentDotStyles.strokeWidth],
+  );
+
+  const selectedDotStyle = useCallback(
+    (feature: FeatureLike) => {
+      const radius = sizeDependentDotStyles.radius * 1.5;
+      const color = `rgba(255, 0, 0, 1)`;
+      return new Style({
+        image: new Circle({
+          stroke: new Stroke({
+            width: sizeDependentDotStyles.strokeWidth,
+            color: "rgba(255, 255, 255, 0.35)",
           }),
           fill: new Fill({
             color,
@@ -165,7 +188,7 @@ const MapComponent = () => {
 
     const selectClick = new Select({
       condition: click,
-      // style: selectStyle,
+      style: selectedDotStyle,
     });
 
     map.addInteraction(selectClick);
