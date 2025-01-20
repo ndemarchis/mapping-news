@@ -20,16 +20,6 @@ import Fill from "ol/style/Fill";
 import MapModal from "./MapModal";
 import useMediaQuery from "@/lib/hooks/use-media-query";
 
-function percentageToColor(
-  percentage: number,
-  maxHue = 120,
-  minHue = 0,
-  a = 50,
-) {
-  const hue = percentage * (maxHue - minHue) + minHue;
-  return `hsl(${hue} 100% 50% / ${a}%)`;
-}
-
 const MapComponent = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -72,29 +62,11 @@ const MapComponent = () => {
     radius: isMobile ? 10 : 5,
     strokeWidth: isMobile ? 3 : 2,
   };
-
-  const getRadius = (count: number) => {
-    if (!(count >= 0)) return sizeDependentDotStyles.radius;
-    return (
-      sizeDependentDotStyles.radius *
-      Math.max(1, Math.log(count) / Math.log(2.2) + 1)
-    );
-  };
-
-  const getColor = (date: string) => {
-    const dateObj = new Date(date);
-    // TODO: FIX THIS
-    const now = new Date();
-    const daysDiff =
-      (now.getTime() - dateObj.getTime()) / (1000 * 60 * 60 * 24);
-    const percentage = Math.E ** -Math.abs(daysDiff / 2);
-    return percentageToColor(percentage, 255, 195);
-  };
-
   const dotStyle = useCallback(
     (feature: FeatureLike) => {
-      const radius = getRadius(feature.get("count"));
-      const color = getColor(feature.get("pub_date"));
+      const radius =
+        sizeDependentDotStyles.radius * (feature.get("dot_size_factor") || 1);
+      const color = feature.get("dot_color") || "rgba(0, 0, 0, 1)";
       return new Style({
         image: new Circle({
           stroke: new Stroke({

@@ -45,6 +45,38 @@ const isPartiallyNullablePoint = (
   return typeof point.lat === "number" && typeof point.lon === "number";
 };
 
+const getDotSizeFactor = (count: number) => {
+  if (!(count >= 0)) return 1;
+  return Math.max(1, Math.log(count) / Math.log(2.2) + 1);
+};
+
+const getDotColor = ({
+  today,
+  pubDate,
+}: {
+  today: Date;
+  pubDate: Date;
+}): string => {
+  const daysDiff =
+    (today.getTime() - pubDate.getTime()) / (1000 * 60 * 60 * 24);
+  const percentage = Math.E ** -Math.abs(daysDiff / 3.2);
+  return getColorFromPercentage({ percentage });
+};
+
+const getColorFromPercentage = ({
+  percentage,
+  minHue = 195,
+  maxHue = 260,
+}: {
+  percentage: number;
+  minHue?: number;
+  maxHue?: number;
+}): string => {
+  const hue = percentage * (maxHue - minHue) + minHue;
+  const a = 40 + percentage * 20;
+  return `hsl(${hue} 100% 50% / ${a}%)`;
+};
+
 export async function GET() {
   const supabase = createClient<Database>(
     process.env.SUPABASE_URL || "",
@@ -98,27 +130,32 @@ export async function GET() {
     return Response.error();
   }
 
+  const today = new Date();
   const filteredData = data.filter(isPartiallyNullablePoint);
 
   console.log(`returning GeoJSON for ${filteredData.length} locations`);
 
   const geoJson: GeoJSON.FeatureCollection = {
     type: "FeatureCollection",
-    features: filteredData.map((location) => ({
-      type: "Feature" as const,
-      geometry: {
-        type: "Point" as const,
-        coordinates: [location.lon, location.lat],
-      },
-      properties: {
-        place_id: location.place_id,
-        title: location.formatted_address,
-        location_type: location.types,
-        count: location.count,
-        raw_count: location.raw_count,
-        pub_date: location.pub_date,
-      },
-    })),
+    features: filteredData.map((location) => {
+      const pubDate = new Date(location.pub_date || "2022-01-01");
+      const dotExpansion = getDotSizeFactor(location.count || 0);
+      const dotColor = getDotColor({ today, pubDate });
+      return {
+        type: "Feature" as const,
+        geometry: {
+          type: "Point" as const,
+          coordinates: [location.lon, location.lat],
+        },
+        properties: {
+          place_id: location.place_id,
+          title: location.formatted_address,
+          location_type: location.types,
+          dot_color: dotColor,
+          dot_size_factor: dotExpansion,
+        },
+      };
+    }),
   };
 
   return Response.json(geoJson);
