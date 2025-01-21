@@ -11,6 +11,7 @@ import Style from "ol/style/Style";
 import Stroke from "ol/style/Stroke";
 import Circle from "ol/style/Circle";
 import Select from "ol/interaction/Select";
+import Link from "ol/interaction/Link";
 import { click } from "ol/events/condition";
 import { Geometry } from "ol/geom";
 import { ArticlesDefinition } from "./types";
@@ -19,10 +20,12 @@ import { FeatureLike } from "ol/Feature";
 import Fill from "ol/style/Fill";
 import MapModal from "./MapModal";
 import useMediaQuery from "@/lib/hooks/use-media-query";
+import { FeatureLoader } from "ol/featureloader";
 
 const MapComponent = () => {
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isLocationsLoading, setIsLocationsLoading] = useState(false);
+  const [isModalLoading, setIsModalLoading] = useState(false);
   const [selectedArticles, setSelectedArticles] =
     useState<ArticlesDefinition>(null);
 
@@ -35,7 +38,7 @@ const MapComponent = () => {
     const properties = feature?.getProperties();
     if (!properties) return;
     setShowModal(true);
-    setLoading(true);
+    setIsModalLoading(true);
     await fetch(`/nyc/live/articles/${properties.place_id}`, {
       cache: "force-cache",
       next: { revalidate: 1800 },
@@ -47,7 +50,7 @@ const MapComponent = () => {
           place_id: properties.place_id,
           articles: data,
         });
-        setLoading(false);
+        setIsModalLoading(false);
       });
   };
 
@@ -113,7 +116,7 @@ const MapComponent = () => {
         showModal={showModal}
         setShowModal={setShowModal}
         selectedArticles={selectedArticles}
-        loading={loading}
+        loading={isModalLoading}
       />
       <div className="flex h-full w-full flex-col items-center justify-center pb-8 pt-16">
         <div
@@ -128,14 +131,33 @@ const MapComponent = () => {
   function initializeMap(
     mapElement: React.MutableRefObject<HTMLDivElement | undefined>,
   ) {
+    setIsLocationsLoading(true);
+
     const osmLayer = new TileLayer({
       preload: Infinity,
       source: new OSM(),
     });
 
     const vectorSource = new VectorSource({
-      url: "/nyc/live/locations",
       format: new GeoJSON(),
+      loader: (extent, resolution, projection, success, failure) => {
+        setIsLocationsLoading(true);
+        fetch("/nyc/live/locations")
+          .then((response) => response.json())
+          .then((data) => {
+            const features = vectorSource?.getFormat?.()?.readFeatures(data);
+            if (!features) return;
+            vectorSource.addFeatures(features);
+            success?.(features);
+          })
+          .finally(() => {
+            setIsLocationsLoading(false);
+          })
+          .catch((error) => {
+            console.error(error);
+            failure?.();
+          });
+      },
     });
 
     const vectorLayer = new VectorLayer({
@@ -171,6 +193,8 @@ const MapComponent = () => {
       const hit = map.hasFeatureAtPixel(event.pixel);
       map.getTargetElement().style.cursor = hit ? "pointer" : "";
     });
+
+    map.addInteraction(new Link());
 
     return () => map.setTarget(undefined);
   }
