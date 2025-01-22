@@ -3,7 +3,9 @@ name: Parse RSS Feeds
 on:
   schedule:
     # Run every hour
-    - cron: "0 */1 * * *"
+    - cron: "*/30 13-22 * * *"
+    - cron: "0 23,0-2,12 * * *"
+    - cron: "0 3-11/2 * * *"
   workflow_dispatch: # Allow manual triggering
 
 jobs:
