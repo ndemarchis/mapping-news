@@ -59,7 +59,7 @@ const getDotColor = ({
 }): string => {
   const daysDiff =
     (today.getTime() - pubDate.getTime()) / (1000 * 60 * 60 * 24);
-  const percentage = Math.E ** -Math.abs(daysDiff / 3.2);
+  const percentage = Math.E ** -Math.abs(daysDiff / 2.9);
   return getColorFromPercentage({ percentage });
 };
 
