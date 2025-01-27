@@ -23,6 +23,9 @@ import ResponsiveSidebar from "./ResponsiveSidebar";
 const MapComponent = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedArticleId, setSelectedArticleId] = useState<string | null>(
+    null,
+  );
   const [selectedArticles, setSelectedArticles] =
     useState<ArticlesDefinition>(null);
 
@@ -47,6 +50,7 @@ const MapComponent = () => {
           place_id: properties.place_id,
           articles: data,
         });
+        setSelectedArticleId(properties.place_id);
         setLoading(false);
       });
   };
@@ -54,6 +58,7 @@ const MapComponent = () => {
   useEffect(() => {
     if (!showModal) {
       setSelectedArticles(null);
+      setSelectedArticleId(null);
     }
   }, [showModal]);
 
