@@ -74,7 +74,7 @@ const getColorFromPercentage = ({
 }): string => {
   const hue = percentage * (maxHue - minHue) + minHue;
   const a = 40 + percentage * 20;
-  return `hsl(${hue} 100% 50% / ${a}%)`;
+  return `hsl(${hue.toFixed(1)} 100% 50% / ${a.toFixed(1)}%)`;
 };
 
 export async function GET() {
@@ -145,7 +145,7 @@ export async function GET() {
         type: "Feature" as const,
         geometry: {
           type: "Point" as const,
-          coordinates: [location.lon, location.lat],
+          coordinates: [location.lon.toFixed(5), location.lat.toFixed(5)],
         },
         properties: {
           place_id: location.place_id,
