@@ -39,6 +39,19 @@ type Location = Simplify<
   }
 >;
 
+interface ModifiedFeatureCollection
+  extends Omit<GeoJSON.FeatureCollection, "features"> {
+  type: "FeatureCollection";
+  features: Array<{
+    type: "Feature";
+    geometry: {
+      type: "Point";
+      coordinates: [string, string] | GeoJSON.Position;
+    };
+    properties: { [K in keyof Properties]?: Properties[K] | null };
+  }>;
+}
+
 const isPartiallyNullablePoint = (
   point: NullableLocation,
 ): point is Location => {
@@ -135,7 +148,7 @@ export async function GET() {
 
   console.log(`returning GeoJSON for ${filteredData.length} locations`);
 
-  const geoJson: GeoJSON.FeatureCollection = {
+  const geoJson: ModifiedFeatureCollection = {
     type: "FeatureCollection",
     features: filteredData.map((location) => {
       const pubDate = new Date(location.pub_date || "2022-01-01");
@@ -150,7 +163,7 @@ export async function GET() {
         properties: {
           place_id: location.place_id,
           title: location.formatted_address,
-          location_type: location.types,
+          // location_type: location.types,
           dot_color: dotColor,
           dot_size_factor: dotExpansion,
         },
