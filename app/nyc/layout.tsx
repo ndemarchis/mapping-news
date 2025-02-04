@@ -1,6 +1,6 @@
 "use client";
 
-import "ol/ol.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
