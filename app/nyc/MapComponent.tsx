@@ -40,10 +40,9 @@ const MapComponent = () => {
     }
   }, [showModal]);
 
-  const { isMobile } = useMediaQuery();
   const sizeDependentDotStyles = {
-    radius: isMobile ? 10 : 5,
-    strokeWidth: isMobile ? 3 : 2,
+    radius: 5,
+    strokeWidth: 2,
   };
 
   useEffect(() => {
