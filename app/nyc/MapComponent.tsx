@@ -5,11 +5,12 @@ import { Map, NavigationControl } from "maplibre-gl";
 import { ArticlesDefinition } from "./types";
 import About from "./About";
 import MapModal from "./MapModal";
-import useMediaQuery from "@/lib/hooks/use-media-query";
+import { LoadingDots } from "@/components/shared/icons";
 
 const MapComponent = () => {
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [mapLoading, setMapLoading] = useState(true);
+  const [modalLoading, setModalLoading] = useState(false);
   const [selectedArticles, setSelectedArticles] =
     useState<ArticlesDefinition>(null);
 
@@ -18,7 +19,7 @@ const MapComponent = () => {
 
   const handleFeatureClick = async (place_id: string, title: string) => {
     setShowModal(true);
-    setLoading(true);
+    setModalLoading(true);
     await fetch(`/nyc/live/articles/${place_id}`, {
       cache: "force-cache",
       next: { revalidate: 1800 },
@@ -30,7 +31,7 @@ const MapComponent = () => {
           place_id: place_id,
           articles: data,
         });
-        setLoading(false);
+        setModalLoading(false);
       });
   };
 
@@ -86,6 +87,12 @@ const MapComponent = () => {
           },
         });
 
+        mapRef.current?.on("sourcedata", (e) => {
+          if (e.sourceId === "locations" && e.isSourceLoaded) {
+            setMapLoading(false);
+          }
+        });
+
         mapRef.current?.on("click", "locations", (e: any) => {
           const feature = e.features?.[0];
           if (feature) {
@@ -120,13 +127,23 @@ const MapComponent = () => {
         showModal={showModal}
         setShowModal={setShowModal}
         selectedArticles={selectedArticles}
-        loading={loading}
+        loading={modalLoading}
       />
       <div className="flex h-full w-full flex-col items-center justify-center pb-8 pt-16">
         <div
           ref={mapElement}
           className="map-container z-10 h-[calc(100vh-12rem)] w-full"
-        />
+        >
+          <div
+            aria-label={mapLoading ? "Loading map data..." : undefined}
+            aria-hidden={mapLoading ? "false" : "true"}
+            className={`pointer-events-none absolute z-50 flex h-[calc(100vh-12rem)] w-full items-center justify-center bg-[#e5fdff] transition-all ${
+              mapLoading ? "opacity-70" : "opacity-0"
+            }`}
+          >
+            <LoadingDots />
+          </div>
+        </div>
       </div>
       <About />
     </>
