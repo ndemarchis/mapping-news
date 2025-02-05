@@ -4,11 +4,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { Map, NavigationControl } from "maplibre-gl";
 import { ArticlesDefinition } from "./types";
 import About from "./About";
+import { LoadingDots } from "@/components/shared/icons";
 import ResponsiveSidebar from "./ResponsiveSidebar";
 
 const MapComponent = () => {
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [mapLoading, setMapLoading] = useState(true);
+  const [modalLoading, setModalLoading] = useState(false);
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(
     null,
   );
@@ -20,7 +22,7 @@ const MapComponent = () => {
 
   const handleFeatureClick = async (place_id: string, title: string) => {
     setShowModal(true);
-    setLoading(true);
+    setModalLoading(true);
     await fetch(`/nyc/live/articles/${place_id}`, {
       cache: "force-cache",
       next: { revalidate: 1800 },
@@ -33,7 +35,7 @@ const MapComponent = () => {
           articles: data,
         });
         setSelectedArticleId(place_id);
-        setLoading(false);
+        setModalLoading(false);
       });
   };
 
@@ -90,6 +92,12 @@ const MapComponent = () => {
           },
         });
 
+        mapRef.current?.on("sourcedata", (e) => {
+          if (e.sourceId === "locations" && e.isSourceLoaded) {
+            setMapLoading(false);
+          }
+        });
+
         mapRef.current?.on("click", "locations", (e: any) => {
           const feature = e.features?.[0];
           if (feature) {
@@ -124,12 +132,22 @@ const MapComponent = () => {
         <div
           ref={mapElement}
           className="map-container z-10 h-[calc(100vh-12rem)] w-full"
-        />
+        >
+          <div
+            aria-label={mapLoading ? "Loading map data..." : undefined}
+            aria-hidden={mapLoading ? "false" : "true"}
+            className={`pointer-events-none absolute z-50 flex h-[calc(100vh-12rem)] w-full items-center justify-center bg-[#e5fdff] transition-all ${
+              mapLoading ? "opacity-70" : "opacity-0"
+            }`}
+          >
+            <LoadingDots />
+          </div>
+        </div>
         <ResponsiveSidebar
           showModal={showModal}
           setShowModal={setShowModal}
           selectedArticles={selectedArticles}
-          loading={loading}
+          loading={modalLoading}
         />
       </div>
       <About />
