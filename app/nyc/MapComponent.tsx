@@ -6,6 +6,8 @@ import { ArticlesDefinition } from "./types";
 import About from "./About";
 import { LoadingDots } from "@/components/shared/icons";
 import ResponsiveSidebar from "./ResponsiveSidebar";
+import Card from "@/components/home/card";
+import Tutorial from "./Tutorial";
 
 const MapComponent = () => {
   const [showModal, setShowModal] = useState(false);
@@ -128,10 +130,10 @@ const MapComponent = () => {
 
   return (
     <>
-      <div className="grid h-full w-full grid-cols-[3fr_2fr] pb-8 pt-16">
+      <div className="grid h-full w-full grid-cols-1 pt-16 mo:grid-cols-[3fr_2fr] md:pb-8">
         <div
           ref={mapElement}
-          className="map-container relative z-10 h-[calc(100vh-12rem)]"
+          className={`map-container relative z-10 h-[calc(100vh-12rem)]`}
         >
           <div
             aria-label={mapLoading ? "Loading map data..." : undefined}
@@ -149,6 +151,11 @@ const MapComponent = () => {
           selectedArticles={selectedArticles}
           loading={modalLoading}
         />
+      </div>
+      <div className="items-left flex w-full p-4 mo:hidden md:max-w-xl">
+        <div className="z-10 w-full rounded-xl border border-gray-200 bg-white p-4 shadow-md *:*:z-10">
+          <Tutorial />
+        </div>
       </div>
       <About />
     </>
