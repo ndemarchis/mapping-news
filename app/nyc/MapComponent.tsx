@@ -128,15 +128,15 @@ const MapComponent = () => {
 
   return (
     <>
-      <div className="flex h-full w-full flex-row items-center justify-center pb-8 pt-16">
+      <div className="grid h-full w-full grid-cols-[3fr_2fr] pb-8 pt-16">
         <div
           ref={mapElement}
-          className="map-container z-10 h-[calc(100vh-12rem)] w-full"
+          className="map-container relative z-10 h-[calc(100vh-12rem)]"
         >
           <div
             aria-label={mapLoading ? "Loading map data..." : undefined}
             aria-hidden={mapLoading ? "false" : "true"}
-            className={`pointer-events-none absolute z-50 flex h-[calc(100vh-12rem)] w-full items-center justify-center bg-[#e5fdff] transition-all ${
+            className={`pointer-events-none absolute z-50 flex h-[calc(100vh-12rem)] w-full max-w-[3fr] items-center justify-center bg-[#f3feff] transition-all ${
               mapLoading ? "opacity-70" : "opacity-0"
             }`}
           >
