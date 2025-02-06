@@ -3,11 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Map, NavigationControl } from "maplibre-gl";
 import { ArticlesDefinition } from "./types";
-import About from "./About";
 import { LoadingDots } from "@/components/shared/icons";
 import ResponsiveSidebar from "./ResponsiveSidebar";
-import Card from "@/components/home/card";
-import Tutorial from "./Tutorial";
 
 const MapComponent = () => {
   const [showModal, setShowModal] = useState(false);
@@ -130,34 +127,26 @@ const MapComponent = () => {
 
   return (
     <>
-      <div className="grid h-full w-full grid-cols-1 pt-16 mo:grid-cols-[3fr_2fr] md:pb-8">
+      <div
+        ref={mapElement}
+        className={`map-container relative z-10 h-[calc(100vh-12rem)]`}
+      >
         <div
-          ref={mapElement}
-          className={`map-container relative z-10 h-[calc(100vh-12rem)]`}
+          aria-label={mapLoading ? "Loading map data..." : undefined}
+          aria-hidden={mapLoading ? "false" : "true"}
+          className={`pointer-events-none absolute z-50 flex h-[calc(100vh-12rem)] w-full max-w-[3fr] items-center justify-center bg-[#f3feff] transition-all ${
+            mapLoading ? "opacity-70" : "opacity-0"
+          }`}
         >
-          <div
-            aria-label={mapLoading ? "Loading map data..." : undefined}
-            aria-hidden={mapLoading ? "false" : "true"}
-            className={`pointer-events-none absolute z-50 flex h-[calc(100vh-12rem)] w-full max-w-[3fr] items-center justify-center bg-[#f3feff] transition-all ${
-              mapLoading ? "opacity-70" : "opacity-0"
-            }`}
-          >
-            <LoadingDots />
-          </div>
-        </div>
-        <ResponsiveSidebar
-          showModal={showModal}
-          setShowModal={setShowModal}
-          selectedArticles={selectedArticles}
-          loading={modalLoading}
-        />
-      </div>
-      <div className="items-left flex w-full p-4 mo:hidden md:max-w-xl">
-        <div className="z-10 w-full rounded-xl border border-gray-200 bg-white p-4 shadow-md *:*:z-10">
-          <Tutorial />
+          <LoadingDots />
         </div>
       </div>
-      <About />
+      <ResponsiveSidebar
+        showModal={showModal}
+        setShowModal={setShowModal}
+        selectedArticles={selectedArticles}
+        loading={modalLoading}
+      />
     </>
   );
 };
