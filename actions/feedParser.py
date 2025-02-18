@@ -187,7 +187,7 @@ def get_server_location_article_relations_recursive(supabase: Client, index: int
 
 def refresh_cache_from_db() -> None:
     supabase_url = os.getenv("SUPABASE_URL") or ""
-    supabase_key = os.getenv("SUPABASE_API_KEY") or ""
+    supabase_key = os.getenv("SUPABASE_SER_KEY") or ""
 
     supabase = create_client(supabase_url, supabase_key)
 
@@ -516,7 +516,7 @@ def generate_location_article_relations(items: List[CustomFeedItem]) -> List[Loc
 def send_articles_to_db(articles: List[ArticlesDefinition]) -> None:
     """Send articles to the Supabase database."""
     supabase_url = os.getenv("SUPABASE_URL") or ""
-    supabase_key = os.getenv("SUPABASE_API_KEY") or ""
+    supabase_key = os.getenv("SUPABASE_SER_KEY") or ""
 
     if len(articles) == 0:
         print("No new articles to send to Supabase.")
@@ -532,7 +532,7 @@ def send_articles_to_db(articles: List[ArticlesDefinition]) -> None:
 
 def send_locations_to_db(locations: List[LocationsDefinition]) -> None:
     supabase_url = os.getenv("SUPABASE_URL") or ""
-    supabase_key = os.getenv("SUPABASE_API_KEY") or ""
+    supabase_key = os.getenv("SUPABASE_SER_KEY") or ""
 
     if len(locations) == 0:
         print("No new locations to send to Supabase.")
@@ -544,7 +544,7 @@ def send_locations_to_db(locations: List[LocationsDefinition]) -> None:
 
 def send_location_article_relations_to_db(location_article_relations: List[LocationArticleRelationsDefinition]) -> None:
     supabase_url = os.getenv("SUPABASE_URL") or ""
-    supabase_key = os.getenv("SUPABASE_API_KEY") or ""
+    supabase_key = os.getenv("SUPABASE_SER_KEY") or ""
 
     if len(location_article_relations) == 0:
         print("No new location-article relations to send to Supabase.")
