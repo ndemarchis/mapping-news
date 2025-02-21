@@ -1,6 +1,7 @@
 import { createClient, PostgrestSingleResponse } from "@supabase/supabase-js";
-import type { NextApiRequest, NextApiResponse } from "next";
 import { Database } from "../../database.types";
+
+export const revalidate = 60 * 60; // 1 hour
 
 type Article = Database["public"]["Tables"]["articles"]["Row"];
 
