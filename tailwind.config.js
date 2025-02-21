@@ -58,6 +58,9 @@ module.exports = {
           "100%": { opacity: 1, transform: "translateY(0)" },
         },
       },
+      screens: {
+        mo: '640px',
+      }
     },
   },
   plugins: [

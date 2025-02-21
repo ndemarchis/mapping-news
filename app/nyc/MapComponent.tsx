@@ -3,43 +3,71 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Map, NavigationControl } from "maplibre-gl";
 import { ArticlesDefinition } from "./types";
-import About from "./About";
-import MapModal from "./MapModal";
 import { LoadingDots } from "@/components/shared/icons";
+import ResponsiveSidebar from "./ResponsiveSidebar";
+import { useSelectedPlace } from "./useSelectedPlace";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const MapComponent = () => {
-  const [showModal, setShowModal] = useState(false);
+  const [showPlaceDetail, setShowModal] = useState(false);
   const [mapLoading, setMapLoading] = useState(true);
   const [modalLoading, setModalLoading] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useSelectedPlace();
   const [selectedArticles, setSelectedArticles] =
     useState<ArticlesDefinition>(null);
 
   const mapElement = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
 
-  const handleFeatureClick = async (place_id: string, title: string) => {
+  const handleFeatureClick = (place_id: string, title?: string) => {
+    getSelectedArticles(place_id, title);
+  };
+
+  const getSelectedArticles = async (place_id: string, title?: string) => {
     setShowModal(true);
     setModalLoading(true);
-    await fetch(`/nyc/live/articles/${place_id}`, {
-      cache: "force-cache",
-      next: { revalidate: 1800 },
-    })
+    await fetch(`/nyc/live/articles/${place_id}`)
       .then((response) => response.json())
       .then((data) => {
         setSelectedArticles({
-          address: title,
-          place_id: place_id,
+          address: title ?? null,
+          place_id,
           articles: data,
         });
+        setSelectedPlace(place_id);
+        setModalLoading(false);
+      })
+      .catch((error) => {
+        console.error(error);
         setModalLoading(false);
       });
   };
 
   useEffect(() => {
-    if (!showModal) {
-      setSelectedArticles(null);
+    const place_id = params.get("place_id");
+    if (place_id !== selectedPlace && place_id) {
+      setSelectedPlace(place_id);
     }
-  }, [showModal]);
+
+    if (!showPlaceDetail && selectedPlace) {
+      setSelectedArticles(null);
+      setSelectedPlace(null);
+    }
+  }, [showPlaceDetail, params]);
+
+  useEffect(() => {
+    if (
+      selectedPlace &&
+      !((selectedArticles?.articles?.length || 0) > 0) &&
+      !mapLoading
+    ) {
+      console.log("good state");
+      getSelectedArticles(selectedPlace);
+    }
+  }, [selectedPlace, selectedArticles, mapLoading]);
 
   const sizeDependentDotStyles = {
     radius: 5,
@@ -123,29 +151,26 @@ const MapComponent = () => {
 
   return (
     <>
-      <MapModal
-        showModal={showModal}
+      <div
+        ref={mapElement}
+        className={`map-container relative z-10 h-[calc(100vh-12rem)]`}
+      >
+        <div
+          aria-label={mapLoading ? "Loading map data..." : undefined}
+          aria-hidden={mapLoading ? "false" : "true"}
+          className={`pointer-events-none absolute z-50 flex h-[calc(100vh-12rem)] w-full max-w-[3fr] items-center justify-center bg-[#f3feff] transition-all ${
+            mapLoading ? "opacity-70" : "opacity-0"
+          }`}
+        >
+          <LoadingDots />
+        </div>
+      </div>
+      <ResponsiveSidebar
+        showModal={showPlaceDetail}
         setShowModal={setShowModal}
         selectedArticles={selectedArticles}
         loading={modalLoading}
       />
-      <div className="flex h-full w-full flex-col items-center justify-center pb-8 pt-16">
-        <div
-          ref={mapElement}
-          className="map-container z-10 h-[calc(100vh-12rem)] w-full"
-        >
-          <div
-            aria-label={mapLoading ? "Loading map data..." : undefined}
-            aria-hidden={mapLoading ? "false" : "true"}
-            className={`pointer-events-none absolute z-50 flex h-[calc(100vh-12rem)] w-full items-center justify-center bg-[#e5fdff] transition-all ${
-              mapLoading ? "opacity-70" : "opacity-0"
-            }`}
-          >
-            <LoadingDots />
-          </div>
-        </div>
-      </div>
-      <About />
     </>
   );
 };
