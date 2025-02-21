@@ -5,45 +5,69 @@ import { Map, NavigationControl } from "maplibre-gl";
 import { ArticlesDefinition } from "./types";
 import { LoadingDots } from "@/components/shared/icons";
 import ResponsiveSidebar from "./ResponsiveSidebar";
+import { useSelectedPlace } from "./useSelectedPlace";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const MapComponent = () => {
-  const [showModal, setShowModal] = useState(false);
+  const [showPlaceDetail, setShowModal] = useState(false);
   const [mapLoading, setMapLoading] = useState(true);
   const [modalLoading, setModalLoading] = useState(false);
-  const [selectedArticleId, setSelectedArticleId] = useState<string | null>(
-    null,
-  );
+  const [selectedPlace, setSelectedPlace] = useSelectedPlace();
   const [selectedArticles, setSelectedArticles] =
     useState<ArticlesDefinition>(null);
 
   const mapElement = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
 
-  const handleFeatureClick = async (place_id: string, title: string) => {
+  const handleFeatureClick = (place_id: string, title?: string) => {
+    getSelectedArticles(place_id, title);
+  };
+
+  const getSelectedArticles = async (place_id: string, title?: string) => {
     setShowModal(true);
     setModalLoading(true);
-    await fetch(`/nyc/live/articles/${place_id}`, {
-      cache: "force-cache",
-      next: { revalidate: 1800 },
-    })
+    await fetch(`/nyc/live/articles/${place_id}`)
       .then((response) => response.json())
       .then((data) => {
         setSelectedArticles({
-          address: title,
+          address: title ?? null,
           place_id,
           articles: data,
         });
-        setSelectedArticleId(place_id);
+        setSelectedPlace(place_id);
+        setModalLoading(false);
+      })
+      .catch((error) => {
+        console.error(error);
         setModalLoading(false);
       });
   };
 
   useEffect(() => {
-    if (!showModal) {
-      setSelectedArticles(null);
-      setSelectedArticleId(null);
+    const place_id = params.get("place_id");
+    if (place_id !== selectedPlace && place_id) {
+      setSelectedPlace(place_id);
     }
-  }, [showModal]);
+
+    if (!showPlaceDetail && selectedPlace) {
+      setSelectedArticles(null);
+      setSelectedPlace(null);
+    }
+  }, [showPlaceDetail, params]);
+
+  useEffect(() => {
+    if (
+      selectedPlace &&
+      !((selectedArticles?.articles?.length || 0) > 0) &&
+      !mapLoading
+    ) {
+      console.log("good state");
+      getSelectedArticles(selectedPlace);
+    }
+  }, [selectedPlace, selectedArticles, mapLoading]);
 
   const sizeDependentDotStyles = {
     radius: 5,
@@ -142,7 +166,7 @@ const MapComponent = () => {
         </div>
       </div>
       <ResponsiveSidebar
-        showModal={showModal}
+        showModal={showPlaceDetail}
         setShowModal={setShowModal}
         selectedArticles={selectedArticles}
         loading={modalLoading}
