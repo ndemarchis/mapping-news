@@ -43,7 +43,7 @@ const getDataRecursiveCurry =
     return { data, error };
   };
 
-export const revalidate = 60 * 10; // 10 minutes
+export const revalidate = 600; // 10 minutes
 
 export async function GET() {
   const supabase = createClient<Database>(

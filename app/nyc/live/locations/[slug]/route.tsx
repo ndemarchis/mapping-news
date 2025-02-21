@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { Database } from "../../database.types";
 
-export const revalidate = 60 * 15; // 15 minutes
+export const revalidate = 900; // 15 minutes
 
 export async function GET(
   request: Request,
