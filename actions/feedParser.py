@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 from typing import List, TypedDict, Optional, Set, Dict, Callable
 from pathlib import Path
 from collections import defaultdict
@@ -185,26 +185,51 @@ def get_server_location_article_relations_recursive(supabase: Client, index: int
         return response.data + get_server_location_article_relations_recursive(supabase, index + 1000)
     return response.data
 
+LAST_MODIFIED_FILE = CACHE_DIRECTORY / "last_modified.txt"
+
+def get_last_modified_date() -> datetime:
+    if file_exists(LAST_MODIFIED_FILE):
+        with open(LAST_MODIFIED_FILE, "r") as f:
+            return datetime.fromisoformat(f.read().strip())
+    return datetime.now() - timedelta(days=1)  # Default to 1 day ago
+
+def save_last_modified_date(date: datetime) -> None:
+    with open(LAST_MODIFIED_FILE, "w") as f:
+        f.write(date.isoformat())
+
+def get_server_articles_since(supabase: Client, last_modified: datetime) -> List[dict]:
+    response = supabase.table("articles").select("*").gte("updated_at", last_modified.isoformat()).execute()
+    return response.data
+
+def get_server_locations_since(supabase: Client, last_modified: datetime) -> List[dict]:
+    response = supabase.table("locations").select("place_id").gte("updated_at", last_modified.isoformat()).execute()
+    return response.data
+
+def get_server_location_article_relations_since(supabase: Client, last_modified: datetime) -> List[dict]:
+    response = supabase.table("location_article_relations").select("article_uuid,place_id,location_name").gte("updated_at", last_modified.isoformat()).execute()
+    return response.data
+
 def refresh_cache_from_db() -> None:
     supabase_url = os.getenv("SUPABASE_URL") or ""
     supabase_key = os.getenv("SUPABASE_SER_KEY") or ""
 
     supabase = create_client(supabase_url, supabase_key)
 
-    # TODO: Type guard results from API
-    # TODO: Better compare data to existing and alert to inconsistencies
+    last_modified = get_last_modified_date()
 
-    prelim_articles_data = get_server_articles_recursive(supabase)
+    prelim_articles_data = get_server_articles_since(supabase, last_modified)
     articles = set([article["uuid3"] for article in prelim_articles_data])
     write_file(CACHE_DIRECTORY / "articles_CLOUD.json", json.dumps(list(articles), ensure_ascii=False))
 
-    prelim_locations = get_server_locations_recursive(supabase)
+    prelim_locations = get_server_locations_since(supabase, last_modified)
     locations = set([location["place_id"] for location in prelim_locations])
     write_file(CACHE_DIRECTORY / "locations.json", json.dumps(list(locations), ensure_ascii=False))
 
-    prelim_location_article_relations = get_server_location_article_relations_recursive(supabase)
+    prelim_location_article_relations = get_server_location_article_relations_since(supabase, last_modified)
     location_article_relations = [relation for relation in prelim_location_article_relations]
     write_file(CACHE_DIRECTORY / "location_article_relations.json", json.dumps(location_article_relations, ensure_ascii=False))
+
+    save_last_modified_date(datetime.now())
 
 def hash(string: Optional[str]) -> Hash:
     if not string:
