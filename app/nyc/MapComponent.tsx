@@ -20,10 +20,7 @@ const MapComponent = () => {
   const handleFeatureClick = async (place_id: string, title: string) => {
     setShowModal(true);
     setModalLoading(true);
-    await fetch(`/nyc/live/articles/${place_id}`, {
-      cache: "force-cache",
-      next: { revalidate: 1800 },
-    })
+    await fetch(`/nyc/live/articles/${place_id}`)
       .then((response) => response.json())
       .then((data) => {
         setSelectedArticles({

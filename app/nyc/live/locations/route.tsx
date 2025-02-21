@@ -1,102 +1,15 @@
-import {
-  createClient,
-  PostgrestError,
-  PostgrestSingleResponse,
-} from "@supabase/supabase-js";
+import { createClient, PostgrestError } from "@supabase/supabase-js";
 import { Database } from "../database.types";
+import { NullableLocation, ModifiedFeatureCollection } from "../../types";
+import {
+  isPartiallyNullablePoint,
+  getDotSizeFactor,
+  getDotColor,
+} from "./utils";
 
-export type Properties = {
-  title: string;
-  articleTitle: string | null;
-  articleLink: string | null;
-  articlePubDate: string | null;
-  articleAuthor: string | null;
-  feedName: string | null;
-  locations: string | null;
-};
-
-type Simplify<T> =
-  | {
-      [K in keyof T]: T[K];
-    };
-
-type NullableLocation = {
-  formatted_address: string | null;
-  lat: number | null;
-  lon: number | null;
-  place_id: string;
-  types: string[] | null;
-  count: number | null;
-  raw_count: number | null;
-  pub_date: string | null;
-};
-
-type RequiredLocationAttrs = Pick<NullableLocation, "lat" | "lon">;
-
-type Location = Simplify<
-  Omit<NullableLocation, keyof RequiredLocationAttrs> & {
-    [K in keyof RequiredLocationAttrs]: NonNullable<RequiredLocationAttrs[K]>;
-  }
->;
-
-interface ModifiedFeatureCollection
-  extends Omit<GeoJSON.FeatureCollection, "features"> {
-  type: "FeatureCollection";
-  features: Array<{
-    type: "Feature";
-    geometry: {
-      type: "Point";
-      coordinates: [string, string] | GeoJSON.Position;
-    };
-    properties: { [K in keyof Properties]?: Properties[K] | null };
-  }>;
-}
-
-const isPartiallyNullablePoint = (
-  point: NullableLocation,
-): point is Location => {
-  return typeof point.lat === "number" && typeof point.lon === "number";
-};
-
-const getDotSizeFactor = (count: number) => {
-  if (!(count >= 0)) return 1;
-  return Math.max(1, Math.log(count) / Math.log(2.2) + 1);
-};
-
-const getDotColor = ({
-  today,
-  pubDate,
-}: {
-  today: Date;
-  pubDate: Date;
-}): string => {
-  const daysDiff =
-    (today.getTime() - pubDate.getTime()) / (1000 * 60 * 60 * 24);
-  const percentage = Math.E ** -Math.abs(daysDiff / 3.2);
-  return getColorFromPercentage({ percentage });
-};
-
-const getColorFromPercentage = ({
-  percentage,
-  minHue = 195,
-  maxHue = 260,
-}: {
-  percentage: number;
-  minHue?: number;
-  maxHue?: number;
-}): string => {
-  const hue = percentage * (maxHue - minHue) + minHue;
-  const a = 40 + percentage * 20;
-  return `hsl(${hue.toFixed(1)} 100% 50% / ${a.toFixed(1)}%)`;
-};
-
-export async function GET() {
-  const supabase = createClient<Database>(
-    process.env.SUPABASE_URL || "",
-    process.env.SUPABASE_API_KEY || "",
-  );
-
-  const getDataRecursive = async (
+const getDataRecursiveCurry =
+  (supabase: ReturnType<typeof createClient<Database>>) =>
+  async (
     start = 0,
   ): Promise<{
     data: NullableLocation[] | null;
@@ -118,7 +31,7 @@ export async function GET() {
     }
 
     if (data.length === 1000) {
-      const recurred = await getDataRecursive(start + 1000);
+      const recurred = await getDataRecursiveCurry(supabase)(start + 1000);
       const recurredData = recurred.data || [];
 
       return {
@@ -130,6 +43,15 @@ export async function GET() {
     return { data, error };
   };
 
+export const revalidate = 600; // 10 minutes
+
+export async function GET() {
+  const supabase = createClient<Database>(
+    process.env.SUPABASE_URL || "",
+    process.env.SUPABASE_API_KEY || "",
+  );
+
+  const getDataRecursive = getDataRecursiveCurry(supabase);
   const { data, error } = await getDataRecursive();
 
   console.log(`fetched ${data?.length} locations`);
