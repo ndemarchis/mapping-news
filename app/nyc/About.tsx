@@ -19,6 +19,95 @@ const About = () => (
       <Link href="http://localhost:3000/about">the about page</Link>.
     </p>
     <h2 id="why">why</h2>
+    <p>
+      Local journalism is in crisis.{" "}
+      <Link href="https://www.pewresearch.org/journalism/fact-sheet/local-newspapers/">
+        Subscription revenue is in freefall
+      </Link>{" "}
+      and outlets can barely cover basic community issues with the resources
+      they have. According to Pew, “at a time when{" "}
+      <Link href="https://www.pewresearch.org/short-reads/2023/11/28/audiences-are-declining-for-traditional-news-media-in-the-us-with-some-exceptions/">
+        many local news outlets are struggling
+      </Link>{" "}
+      and{" "}
+      <Link href="https://www.pewresearch.org/short-reads/2022/10/27/u-s-adults-under-30-now-trust-information-from-social-media-almost-as-much-as-from-national-news-outlets/">
+        Americans’ trust in the news media
+      </Link>{" "}
+      has waned, the vast majority of U.S. adults (85%) say local news outlets
+      are at least somewhat important to the well-being of their local
+      community.”
+    </p>
+    <p>
+      This crisis has{" "}
+      <Link href="https://www.usnewsdeserts.com/reports/expanding-news-desert/loss-of-local-news/">
+        several downstream effects
+      </Link>
+      , including “
+      <Link href="https://www.usnewsdeserts.com/reports/expanding-news-desert/">
+        news deserts
+      </Link>
+      ” — areas of the country that receive <em>no</em> coverage because all of
+      their outlets have closed. Northwestern University’s Medill School “
+      <Link href="https://localnewsinitiative.northwestern.edu/">
+        Local News Initiative
+      </Link>
+      ” tracks local outlets, and{" "}
+      <Link href="https://localnewsinitiative.northwestern.edu/projects/state-of-local-news/2024/report/">
+        releases an annual report
+      </Link>{" "}
+      analyzing local news coverage county-by-county across the US.{" "}
+      <Link href="https://localnewsinitiative.northwestern.edu/projects/state-of-local-news/explore/#/localnewslandscape">
+        It states that
+      </Link>{" "}
+      “There are 206 counties in the United States with no news outlets,”
+      according to the initiative, and 1,558 counties only have one.{" "}
+    </p>
+    <p>
+      This data has been invaluable to understanding the state of local news
+      coverage and the consequences of news deserts are well-documented.
+      However, I wanted to look beyond the physical spread of local outlets, and
+      bring attention not just to the counties that have just one or two.{" "}
+    </p>
+    <p>
+      My theory is that not all communities are treated equally when coverage is
+      low and resources are spread thin. Could a county-level newspaper, for
+      instance, focus a significant amount of coverage on the county seat, but
+      miss happenings other population centers spread miles away? If so, how
+      could we know?
+    </p>
+    <p>
+      This project aims to examine this problem by mapping the locations
+      mentioned in local news articles in one region — New York City. Why? It’s
+      where I live right now, but more importantly, it&#39;s one of the most{" "}
+      <Link href="https://en.wikipedia.org/wiki/List_of_New_York_City_newspapers_and_magazines">
+        journalism-heavy environments
+      </Link>{" "}
+      in the US. Moreover, many of the edge cases that would exist expanding
+      this data to cover the rest of the country can be identified and addressed
+      here. For instance, New Yorkers have their choice of corporate media (both
+      print and TV), <Link href="https://www.thecity.nyc/">nonprofit</Link> and{" "}
+      <Link href="https://hellgatenyc.com/">worker-owned</Link> outlets,
+      non-English print-only publications and hyper-local, small-circulation
+      dailies. We have duplicate addresses within coverage areas (Fifth Avenue
+      in Brooklyn versus Manhattan), ambiguous locations like universities and
+      hospitals, local names and landmarks, outlets with overlapping coverage
+      areas, and more. That’s to say, the work is clear to expand this project
+      more broadly.{" "}
+    </p>
+    <p>
+      Others have undertaken similar projects— read more about them below. I
+      will soon be creating a blog page and post updates to this project there,
+      as well as on my personal{" "}
+      <Link href="https://x.com/nickdemarchis">X</Link> and{" "}
+      <Link href="https://bsky.app/profile/did:plc:kiu4tkgaytpy5ycu2tnwjz5m">
+        Bluesky
+      </Link>
+      . And please feel free to{" "}
+      <Link href="/about" sameWindow>
+        reach out
+      </Link>{" "}
+      with any suggestions or comments!
+    </p>
     <h2 id="technical-details">technical details</h2>
     <h3 id="overview">overview</h3>
     <ul className="list-disc pl-4">
@@ -127,8 +216,11 @@ const About = () => (
       <Link href="https://github.com/ndemarchis/mapping-news/issues">
         issue tracker
       </Link>
-      . One of our biggest goals is to expand this work to more communities and
-      better understand how neighborhoods receive news coverage.{" "}
+      . Read more{" "}
+      <Link href="#why" sameWindow>
+        above
+      </Link>{" "}
+      to understand why we&apos;re building this.
     </p>
     <h2 id="further-reading">further reading</h2>
     <ul className="list-disc pl-4 [&>li]:pb-2">
