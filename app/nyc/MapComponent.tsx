@@ -69,6 +69,21 @@ const MapComponent = () => {
     }
   }, [selectedPlace, selectedArticles, mapLoading]);
 
+  useEffect(() => {
+    if (selectedPlace && mapRef?.current && !mapLoading) {
+      const selectedFeature = mapRef.current.querySourceFeatures("locations", {
+        filter: ["==", "place_id", selectedPlace],
+      })[0];
+      if (selectedFeature) {
+        mapRef.current.flyTo({
+          // @ts-expect-error
+          center: selectedFeature?.geometry?.coordinates,
+          zoom: 13,
+        });
+      }
+    }
+  }, [selectedPlace, mapLoading]);
+
   const sizeDependentDotStyles = {
     radius: 5,
     strokeWidth: 2,
