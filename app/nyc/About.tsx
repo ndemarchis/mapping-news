@@ -72,7 +72,7 @@ const About = () => (
       My theory is that not all communities are treated equally when coverage is
       low and resources are spread thin. Could a county-level newspaper, for
       instance, focus a significant amount of coverage on the county seat, but
-      miss happenings other population centers spread miles away? If so, how
+      miss happenings in other population centers spread miles away? If so, how
       could we know?
     </p>
     <p>
