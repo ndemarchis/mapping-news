@@ -7,14 +7,21 @@ import { LoadingDots } from "@/components/shared/icons";
 import ResponsiveSidebar from "./ResponsiveSidebar";
 import { useSelectedPlace } from "./useSelectedPlace";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useArticlePagination } from "./hooks/useArticlePagination";
 
 const MapComponent = () => {
   const [showPlaceDetail, setShowModal] = useState(false);
   const [mapLoading, setMapLoading] = useState(true);
-  const [modalLoading, setModalLoading] = useState(false);
+  const {
+    selectedArticles,
+    loading: modalLoading,
+    hasMore,
+    fetchArticles,
+    loadMoreArticles,
+    resetPagination,
+  } = useArticlePagination();
+
   const [selectedPlace, setSelectedPlace] = useSelectedPlace();
-  const [selectedArticles, setSelectedArticles] =
-    useState<ArticlesDefinition>(null);
 
   const mapElement = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
@@ -23,27 +30,9 @@ const MapComponent = () => {
   const params = useSearchParams();
 
   const handleFeatureClick = (place_id: string, title?: string) => {
-    getSelectedArticles(place_id, title);
-  };
-
-  const getSelectedArticles = async (place_id: string, title?: string) => {
+    resetPagination();
     setShowModal(true);
-    setModalLoading(true);
-    await fetch(`/nyc/live/articles/${place_id}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setSelectedArticles({
-          address: title ?? null,
-          place_id,
-          articles: data,
-        });
-        setSelectedPlace(place_id);
-        setModalLoading(false);
-      })
-      .catch((error) => {
-        console.error(error);
-        setModalLoading(false);
-      });
+    fetchArticles(place_id, title, 1);
   };
 
   useEffect(() => {
@@ -53,7 +42,7 @@ const MapComponent = () => {
     }
 
     if (!showPlaceDetail && selectedPlace) {
-      setSelectedArticles(null);
+      resetPagination();
       setSelectedPlace(null);
     }
   }, [showPlaceDetail, params]);
@@ -65,7 +54,7 @@ const MapComponent = () => {
       !mapLoading
     ) {
       console.log("good state");
-      getSelectedArticles(selectedPlace);
+      fetchArticles(selectedPlace);
     }
   }, [selectedPlace, selectedArticles, mapLoading]);
 
@@ -185,6 +174,8 @@ const MapComponent = () => {
         setShowModal={setShowModal}
         selectedArticles={selectedArticles}
         loading={modalLoading}
+        loadMoreArticles={loadMoreArticles}
+        hasMore={hasMore}
       />
     </>
   );
