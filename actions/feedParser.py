@@ -14,10 +14,15 @@ import pandas as pd
 import requests
 from supabase import create_client, Client
 import hashlib
+import shutil
+import glob
 
 FEED_FILE = Path(__file__).resolve().parent / "../public/feeds/feeds.csv"
 CACHE_DIRECTORY = Path(__file__).resolve().parent / "../cache/"
 FILTERABLE_LOCATION_TYPES = ["political", "country", "administrative_area_level_1", "administrative_area_level_2","locality","sublocality","neighborhood","postal_code"]
+
+# Set this to True to skip all database operations (no data will be sent to the database)
+SKIP_DB_OPERATIONS = True
 
 Hash = str
 PlaceId = str
@@ -198,38 +203,72 @@ def save_last_modified_date(date: datetime) -> None:
         f.write(date.isoformat())
 
 def get_server_articles_since(supabase: Client, last_modified: datetime) -> List[dict]:
-    response = supabase.table("articles").select("*").gte("updated_at", last_modified.isoformat()).execute()
+    response = supabase.table("articles").select("*").gte("created_at", last_modified.isoformat()).execute()
     return response.data
 
 def get_server_locations_since(supabase: Client, last_modified: datetime) -> List[dict]:
-    response = supabase.table("locations").select("place_id").gte("updated_at", last_modified.isoformat()).execute()
+    response = supabase.table("locations").select("place_id").gte("created_at", last_modified.isoformat()).execute()
     return response.data
 
 def get_server_location_article_relations_since(supabase: Client, last_modified: datetime) -> List[dict]:
-    response = supabase.table("location_article_relations").select("article_uuid,place_id,location_name").gte("updated_at", last_modified.isoformat()).execute()
+    response = supabase.table("location_article_relations").select("article_uuid,place_id,location_name").gte("created_at", last_modified.isoformat()).execute()
     return response.data
 
 def refresh_cache_from_db() -> None:
     supabase_url = os.getenv("SUPABASE_URL") or ""
     supabase_key = os.getenv("SUPABASE_SER_KEY") or ""
 
-    supabase = create_client(supabase_url, supabase_key)
+    # Create backup of existing cache
+    backup_dir = backup_cache()
+    print(f"Cache backed up before refresh: {backup_dir}")
 
-    last_modified = get_last_modified_date()
+    try:
+        supabase = create_client(supabase_url, supabase_key)
 
-    prelim_articles_data = get_server_articles_since(supabase, last_modified)
-    articles = set([article["uuid3"] for article in prelim_articles_data])
-    write_file(CACHE_DIRECTORY / "articles_CLOUD.json", json.dumps(list(articles), ensure_ascii=False))
+        last_modified = get_last_modified_date()
+        error_occurred = False
 
-    prelim_locations = get_server_locations_since(supabase, last_modified)
-    locations = set([location["place_id"] for location in prelim_locations])
-    write_file(CACHE_DIRECTORY / "locations.json", json.dumps(list(locations), ensure_ascii=False))
+        try:
+            print("Fetching articles from database...")
+            prelim_articles_data = get_server_articles_since(supabase, last_modified)
+            articles = set([article["uuid3"] for article in prelim_articles_data])
+            write_file(CACHE_DIRECTORY / "articles_CLOUD.json", json.dumps(list(articles), ensure_ascii=False))
+            print(f"  - Retrieved {len(articles)} articles")
+        except Exception as e:
+            print(f"ERROR fetching articles: {str(e)}")
+            error_occurred = True
 
-    prelim_location_article_relations = get_server_location_article_relations_since(supabase, last_modified)
-    location_article_relations = [relation for relation in prelim_location_article_relations]
-    write_file(CACHE_DIRECTORY / "location_article_relations.json", json.dumps(location_article_relations, ensure_ascii=False))
+        try:
+            print("Fetching locations from database...")
+            prelim_locations = get_server_locations_since(supabase, last_modified)
+            locations = set([location["place_id"] for location in prelim_locations])
+            write_file(CACHE_DIRECTORY / "locations.json", json.dumps(list(locations), ensure_ascii=False))
+            print(f"  - Retrieved {len(locations)} locations")
+        except Exception as e:
+            print(f"ERROR fetching locations: {str(e)}")
+            error_occurred = True
 
-    save_last_modified_date(datetime.now())
+        try:
+            print("Fetching location-article relations from database...")
+            prelim_location_article_relations = get_server_location_article_relations_since(supabase, last_modified)
+            location_article_relations = [relation for relation in prelim_location_article_relations]
+            write_file(CACHE_DIRECTORY / "location_article_relations.json", json.dumps(location_article_relations, ensure_ascii=False))
+            print(f"  - Retrieved {len(location_article_relations)} location-article relations")
+        except Exception as e:
+            print(f"ERROR fetching location-article relations: {str(e)}")
+            error_occurred = True
+
+        if error_occurred:
+            print("Some errors occurred during cache refresh, but we continued with available data.")
+        
+        save_last_modified_date(datetime.now())
+        print("Cache refreshed from DB with available data.")
+    except Exception as e:
+        print(f"Error refreshing cache from DB: {str(e)}")
+        print("Reverting caches to previous state...")
+        restore_cache(backup_dir)
+        print("Cache reverted to previous state.")
+        raise  # Re-raise the exception to stop further execution
 
 def hash(string: Optional[str]) -> Hash:
     if not string:
@@ -268,7 +307,7 @@ async def fetch_new_articles() -> List[FeedItem]:
 
     feeds = load_feeds()
 
-    TEMP_ARTICLES_LIMIT = 1001.5
+    TEMP_ARTICLES_LIMIT = 11.5
     articles_count = 0
 
     for feed in feeds:
@@ -538,6 +577,65 @@ def generate_location_article_relations(items: List[CustomFeedItem]) -> List[Loc
 
     return to_return
 
+def backup_cache() -> Path:
+    """
+    Create a backup of all cache files.
+    Maintains only the 5 most recent backups, deleting older ones.
+    When running in a GitHub Action, these are stored as GitHub artifacts.
+    """
+    timestamp = int(datetime.now().timestamp())
+    backup_dir = CACHE_DIRECTORY / f"backup_{timestamp}"
+    backup_dir.mkdir(exist_ok=True)
+    
+    # Get all json files in cache directory
+    cache_files = [f for f in CACHE_DIRECTORY.glob("*.json")]
+    
+    # Copy files to backup directory
+    for file in cache_files:
+        if file.is_file():
+            shutil.copy2(file, backup_dir / file.name)
+    
+    # Get all existing backup directories sorted by creation time (newest first)
+    backup_pattern = str(CACHE_DIRECTORY / "backup_*")
+    existing_backups = sorted(
+        [Path(p) for p in glob.glob(backup_pattern)],
+        key=lambda x: int(x.name.split('_')[1]),
+        reverse=True
+    )
+    
+    # Keep only the 5 most recent backups (including the one we just created)
+    for old_backup in existing_backups[5:]:
+        print(f"Removing old backup: {old_backup}")
+        try:
+            shutil.rmtree(old_backup)
+        except Exception as e:
+            print(f"Error removing old backup {old_backup}: {e}")
+    
+    # Handle GitHub Actions artifacts if running in GitHub Actions
+    if os.environ.get('GITHUB_ACTIONS') == 'true':
+        print(f"Running in GitHub Actions - backup created at {backup_dir}")
+        # Create a marker file to indicate this is a GitHub Actions run
+        with open(backup_dir / "github_actions_marker.txt", "w") as f:
+            f.write(f"Created at {datetime.now().isoformat()}")
+    
+    return backup_dir
+
+def restore_cache(backup_dir: Path) -> None:
+    """Restore cache files from backup directory."""
+    if not backup_dir.exists():
+        print("Backup directory not found!")
+        return
+    
+    # Get all json files in backup directory
+    backup_files = [f for f in backup_dir.glob("*.json")]
+    
+    # Copy files back to cache directory
+    for file in backup_files:
+        if file.is_file():
+            shutil.copy2(file, CACHE_DIRECTORY / file.name)
+    
+    print(f"Cache restored from backup: {backup_dir}")
+
 def send_articles_to_db(articles: List[ArticlesDefinition]) -> None:
     """Send articles to the Supabase database."""
     supabase_url = os.getenv("SUPABASE_URL") or ""
@@ -551,9 +649,15 @@ def send_articles_to_db(articles: List[ArticlesDefinition]) -> None:
 
     print(f"- 4. Sending {len(articles)} articles to Supabase")
     print(f"    {len([article for article in articles if article['headline']])} with location data, {len([article for article in articles if not article['headline']])} without")
-
-    pass
-    supabase.table("articles").insert(articles, upsert=True).execute()
+    
+    if SKIP_DB_OPERATIONS:
+        print("Skipping sending articles to Supabase (SKIP_DB_OPERATIONS is enabled)")
+        return
+    response = supabase.table("articles").insert(articles, upsert=True).execute()
+    
+    # Check if there was an error
+    if hasattr(response, 'error') and response.error:
+        raise Exception(f"Failed to send articles to Supabase: {response.error}")
 
 def send_locations_to_db(locations: List[LocationsDefinition]) -> None:
     supabase_url = os.getenv("SUPABASE_URL") or ""
@@ -565,9 +669,18 @@ def send_locations_to_db(locations: List[LocationsDefinition]) -> None:
 
     supabase = create_client(supabase_url, supabase_key)
     print(f"- 5. Sending {len(locations)} locations to Supabase")
-    supabase.table("locations").insert(list(locations), upsert=True).execute()
+
+    if SKIP_DB_OPERATIONS:
+        print("Skipping sending locations to Supabase (SKIP_DB_OPERATIONS is enabled)")
+        return
+    response = supabase.table("locations").insert(list(locations), upsert=True).execute()
+    
+    # Check if there was an error
+    if hasattr(response, 'error') and response.error:
+        raise Exception(f"Failed to send locations to Supabase: {response.error}")
 
 def send_location_article_relations_to_db(location_article_relations: List[LocationArticleRelationsDefinition]) -> None:
+        
     supabase_url = os.getenv("SUPABASE_URL") or ""
     supabase_key = os.getenv("SUPABASE_SER_KEY") or ""
 
@@ -577,7 +690,16 @@ def send_location_article_relations_to_db(location_article_relations: List[Locat
 
     supabase = create_client(supabase_url, supabase_key)
     print(f"- 6. Sending {len(location_article_relations)} location-article relations to Supabase")
-    supabase.table("location_article_relations").insert(location_article_relations, upsert=True).execute()
+
+    if SKIP_DB_OPERATIONS:
+        print("Skipping sending location-article relations to Supabase (SKIP_DB_OPERATIONS is enabled)")
+        return
+
+    response = supabase.table("location_article_relations").insert(location_article_relations, upsert=True).execute()
+    
+    # Check if there was an error
+    if hasattr(response, 'error') and response.error:
+        raise Exception(f"Failed to send location-article relations to Supabase: {response.error}")
 
 def handle_articles_result(new_articles_with_geocoded_locations: List[ArticlesDefinition]) -> None:
     """Add the new articles to the cache."""
@@ -602,7 +724,11 @@ def handle_location_article_relations_result(new_location_article_relations: Lis
     send_location_article_relations_to_db(new_location_article_relations)
 
 async def main() -> None:
-    refresh_cache_from_db()
+    try:
+        refresh_cache_from_db()
+    except Exception as e:
+        print(f"Failed to refresh cache from DB: {str(e)}")
+        return
 
     new_articles = await fetch_new_articles()
     if not new_articles: 
@@ -621,9 +747,22 @@ async def main() -> None:
     filtered_articles = filter_and_reorganize_articles(new_articles_with_geocoded_locations)
     location_article_relations = generate_location_article_relations(new_articles_with_geocoded_locations)
 
-    handle_articles_result(filtered_articles)
-    handle_locations_result(new_geocoded_full_locations)
-    handle_location_article_relations_result(location_article_relations)
+    # Create a backup of the cache before performing DB operations
+    backup_dir = backup_cache()
+    print(f"Cache backed up to: {backup_dir}")
+    
+    try:
+        # Perform DB operations
+        handle_articles_result(filtered_articles)
+        handle_locations_result(new_geocoded_full_locations)
+        handle_location_article_relations_result(location_article_relations)
+        print("All database operations completed successfully.")
+    except Exception as e:
+        print(f"Error during database operations: {str(e)}")
+        print("Reverting caches to previous state...")
+        restore_cache(backup_dir)
+        print("Cache reverted to previous state. Exiting.")
+        return
 
 if __name__ == "__main__":
     asyncio.run(main())
