@@ -1,6 +1,6 @@
 import useMediaQuery from "@/lib/hooks/use-media-query";
 import { ArticlesDefinition } from "./types";
-import React, { Suspense, useEffect, useMemo } from "react";
+import React, { Suspense, useEffect } from "react";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import Modal from "@/components/shared/modal";
 import ArticleLineItem from "./ArticleLineItem";
@@ -13,11 +13,15 @@ const ResponsiveSidebar = ({
   setShowModal,
   selectedArticles,
   loading,
+  loadMoreArticles,
+  hasMore,
 }: {
   showModal: boolean;
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
   selectedArticles: ArticlesDefinition;
   loading: boolean;
+  loadMoreArticles: () => void;
+  hasMore: boolean;
 }) => {
   const { isMobile } = useMediaQuery();
   const selectedArticlesLocationNames =
@@ -82,7 +86,7 @@ const ResponsiveSidebar = ({
             )}
           </div>
         )}
-        {selectedArticles?.articles?.length && !loading && (
+        {selectedArticles?.articles?.length && (
           <div className="flex flex-col gap-1 overflow-y-scroll">
             {selectedArticles?.articles?.map((article, index) => (
               <ArticleLineItem
@@ -91,6 +95,19 @@ const ResponsiveSidebar = ({
                 showLocationInfo={selectedArticlesLocationNames.length > 1}
               />
             ))}
+
+            {/* Load More Button */}
+            {hasMore && (
+              <div className="mb-2 mt-4 flex justify-center">
+                <button
+                  onClick={loadMoreArticles}
+                  disabled={loading}
+                  className="rounded-md bg-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:opacity-50"
+                >
+                  {loading ? <LoadingDots /> : "Load More"}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </Suspense>

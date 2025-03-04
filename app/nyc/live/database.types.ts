@@ -138,6 +138,7 @@ export type Database = {
       };
       locations: {
         Row: {
+          created_at: string | null;
           formatted_address: string | null;
           lat: number | null;
           lon: number | null;
@@ -145,6 +146,7 @@ export type Database = {
           types: string[] | null;
         };
         Insert: {
+          created_at?: string | null;
           formatted_address?: string | null;
           lat?: number | null;
           lon?: number | null;
@@ -152,6 +154,7 @@ export type Database = {
           types?: string[] | null;
         };
         Update: {
+          created_at?: string | null;
           formatted_address?: string | null;
           lat?: number | null;
           lon?: number | null;
@@ -184,16 +187,29 @@ export type Database = {
           pub_date: string;
         }[];
       };
-      get_sorted_location_article_relations: {
-        Args: {
-          p_place_id: string;
-        };
-        Returns: {
-          article_uuid: string;
-          location_name: string;
-          articles: Json;
-        }[];
-      };
+      get_sorted_location_article_relations:
+        | {
+            Args: {
+              p_place_id: string;
+            };
+            Returns: {
+              article_uuid: string;
+              location_name: string;
+              articles: Json;
+            }[];
+          }
+        | {
+            Args: {
+              p_place_id: string;
+              p_limit: number;
+              p_offset: number;
+            };
+            Returns: {
+              article_uuid: string;
+              location_name: string;
+              articles: Json;
+            }[];
+          };
     };
     Enums: {
       "Article Status": "ARCHIVED" | "UNDEFINED";
