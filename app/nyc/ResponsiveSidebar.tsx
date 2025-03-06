@@ -3,7 +3,7 @@ import { ArticlesDefinition } from "./types";
 import React, { Suspense, useEffect, useMemo } from "react";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import Modal from "@/components/shared/modal";
-import ArticleLineItem from "./ArticleLineItem";
+import ArticleEntry from "./ArticleEntry";
 import { LoadingDots } from "@/components/shared/icons";
 import Link from "@/components/shared/link";
 import Tutorial from "./Tutorial";
@@ -106,7 +106,7 @@ const ResponsiveSidebar = ({
             <hr className="mx-auto mb-2 mt-4 w-full border-gray-300 md:w-1/2" />
             <div className="flex flex-col gap-1 overflow-y-scroll">
               {selectedArticles?.articles?.map((article, index) => (
-                <ArticleLineItem
+                <ArticleEntry
                   key={`${article.uuid3}${index}`}
                   article={article}
                   showLocationInfo={selectedArticlesLocationNames.length > 1}

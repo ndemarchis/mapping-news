@@ -3,11 +3,12 @@ import * as Collapsible from "@radix-ui/react-collapsible";
 import { ArticleDefinition } from "./types";
 import { ModifiedEntriesWithDots } from "./ModifiedEntries";
 import { useState } from "react";
-import { ArrowRight, ChevronRight, Map } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Database } from "./live/database.types";
 import { LoadingDots } from "@/components/shared/icons";
+import { ArticleLocationEntry } from "./ArticleLocationEntry";
 
-const ArticleLineItem = ({
+const ArticleEntry = ({
   article,
   showLocationInfo,
   setSelectedPlace,
@@ -82,35 +83,12 @@ const ArticleLineItem = ({
           {locations?.length && !isLocationsLoading && (
             <ul className="list-disc pl-4">
               {locations.map((relation, index) => (
-                <li
+                <ArticleLocationEntry
                   key={`${relation.id}${index}`}
-                  className="text-xs text-gray-500"
-                >
-                  <span className="flex flex-row items-center gap-2">
-                    <button
-                      className="group flex flex-row items-center gap-1 text-gray-500 transition-all duration-75 hover:cursor-pointer hover:text-gray-800 hover:underline active:bg-gray-100"
-                      onClick={() => {
-                        relation.place_id &&
-                          setSelectedPlace(
-                            relation.place_id,
-                            relation.location_name ?? undefined,
-                          );
-                      }}
-                    >
-                      {relation.location_name}
-                      <ArrowRight
-                        className="transition-all group-hover:translate-x-1"
-                        size="16px"
-                      />
-                    </button>
-                    <Link
-                      className="text-gray-500 transition-all duration-75 hover:cursor-pointer hover:text-gray-800 active:bg-gray-100"
-                      href={`https://www.google.com/maps/search/?api=1&query=${relation?.location_name}&query_place_id=${relation?.place_id}`}
-                    >
-                      <Map size="16px" />
-                    </Link>
-                  </span>
-                </li>
+                  relation={relation}
+                  index={index}
+                  setSelectedPlace={setSelectedPlace}
+                />
               ))}
             </ul>
           )}
@@ -120,4 +98,4 @@ const ArticleLineItem = ({
   );
 };
 
-export default ArticleLineItem;
+export default ArticleEntry;
