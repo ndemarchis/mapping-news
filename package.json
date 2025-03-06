@@ -33,7 +33,7 @@
     "framer-motion": "^8.5.5",
     "fs-extra": "^11.2.0",
     "leaflet": "^1.9.4",
-    "lucide-react": "0.105.0-alpha.4",
+    "lucide-react": "0.477.0",
     "mapbox-gl": "^3.9.0",
     "maplibre-gl": "^5.1.0",
     "ms": "^2.1.3",

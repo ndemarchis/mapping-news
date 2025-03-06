@@ -6,7 +6,7 @@ import { ArticlesDefinition } from "./types";
 import { LoadingDots } from "@/components/shared/icons";
 import ResponsiveSidebar from "./ResponsiveSidebar";
 import { useSelectedPlace } from "./useSelectedPlace";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 const MapComponent = () => {
   const [showPlaceDetail, setShowModal] = useState(false);
@@ -18,8 +18,6 @@ const MapComponent = () => {
 
   const mapElement = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
-  const router = useRouter();
-  const pathname = usePathname();
   const params = useSearchParams();
 
   const handleFeatureClick = (place_id: string, title?: string) => {
@@ -64,7 +62,6 @@ const MapComponent = () => {
       !((selectedArticles?.articles?.length || 0) > 0) &&
       !mapLoading
     ) {
-      console.log("good state");
       getSelectedArticles(selectedPlace);
     }
   }, [selectedPlace, selectedArticles, mapLoading]);
@@ -73,12 +70,13 @@ const MapComponent = () => {
     if (selectedPlace && mapRef?.current && !mapLoading) {
       const selectedFeature = mapRef.current.querySourceFeatures("locations", {
         filter: ["==", "place_id", selectedPlace],
-      })[0];
+      })?.[0];
+      console.log(selectedFeature);
       if (selectedFeature) {
         mapRef.current.flyTo({
           // @ts-expect-error
           center: selectedFeature?.geometry?.coordinates,
-          zoom: 13,
+          zoom: 11.5,
         });
       }
     }
@@ -164,6 +162,41 @@ const MapComponent = () => {
     };
   }, [sizeDependentDotStyles.radius, sizeDependentDotStyles.strokeWidth]);
 
+  useEffect(() => {
+    // wait until locations layer is loaded
+
+    if (mapRef.current && selectedPlace && !mapLoading) {
+      if (mapRef.current.getLayer("selected-place")) {
+        mapRef.current.removeLayer("selected-place");
+      }
+
+      mapRef.current.addLayer({
+        id: "selected-place",
+        type: "circle",
+        source: "locations",
+        filter: ["==", "place_id", selectedPlace],
+        paint: {
+          "circle-radius": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            10,
+            ["*", sizeDependentDotStyles.radius, ["get", "dot_size_factor"]],
+            15,
+            [
+              "*",
+              sizeDependentDotStyles.radius * 2,
+              ["get", "dot_size_factor"],
+            ],
+          ],
+          "circle-color": "red",
+          "circle-stroke-width": sizeDependentDotStyles.strokeWidth,
+          "circle-stroke-color": "rgba(255, 255, 255, 0.35)",
+        },
+      });
+    }
+  }, [selectedPlace, mapRef.current, mapLoading]);
+
   return (
     <>
       <div
@@ -184,6 +217,7 @@ const MapComponent = () => {
         showModal={showPlaceDetail}
         setShowModal={setShowModal}
         selectedArticles={selectedArticles}
+        setSelectedPlace={handleFeatureClick}
         loading={modalLoading}
       />
     </>
