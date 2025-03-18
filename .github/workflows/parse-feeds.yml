@@ -27,11 +27,29 @@ jobs:
         run: |
           pip install poetry
 
-      # Step 3: Install dependencies
+      # Step 3: Restore cache backups
+      - name: Restore cache backups
+        id: restore-cache-backups
+        continue-on-error: true
+        uses: actions/download-artifact@v2
+        with:
+          name: cache-backups
+          path: cache/
+
+      # Step 4: Restore last modified date
+      - name: Restore last modified date
+        id: restore-last-modified
+        continue-on-error: true
+        uses: actions/download-artifact@v2
+        with:
+          name: last-modified
+          path: cache/last_modified.txt
+
+      # Step 5: Install dependencies
       - name: Install dependencies
         run: poetry install
 
-      # Step 4: Run the feed parser script
+      # Step 6: Run the feed parser script
       - name: Run feed parser script
         run: poetry run python actions/feedParser.py
         env:
@@ -40,3 +58,22 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
           SUPABASE_SER_KEY: ${{ secrets.SUPABASE_SER_KEY }}
+          GITHUB_ACTIONS: "true"
+
+      # Step 7: Save last modified date
+      - name: Save last modified date
+        if: success()
+        uses: actions/upload-artifact@v2
+        with:
+          name: last-modified
+          path: cache/last_modified.txt
+          retention-days: 30
+
+      # Step 8: Save cache backups
+      - name: Save cache backups
+        if: success()
+        uses: actions/upload-artifact@v2
+        with:
+          name: cache-backups
+          path: cache/backup_*
+          retention-days: 30
