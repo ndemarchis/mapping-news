@@ -94,6 +94,10 @@ const MapComponent = () => {
         style: "https://tiles.openfreemap.org/styles/positron", // Map style URL
         center: [-73.935242, 40.73061], // Initial map center [lng, lat]
         zoom: 11,
+        maxBounds: [
+          [-74.52, 40.36], // Southwest coordinates
+          [-73.15, 41.22], // Northeast coordinates
+        ],
       });
 
       mapRef.current.addControl(new NavigationControl(), "top-right");
