@@ -96,7 +96,7 @@ const ResponsiveSidebar = ({
               <LoadingDots aria-label="Loading" />
             ) : (
               <div className="hidden mo:inline">
-                <Tutorial />
+                <Tutorial setSelectedPlace={setSelectedPlace} />
               </div>
             )}
           </div>
