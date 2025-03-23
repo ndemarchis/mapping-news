@@ -6,9 +6,13 @@ import { ArticlesDefinition } from "./types";
 import { LoadingDots } from "@/components/shared/icons";
 import ResponsiveSidebar from "./ResponsiveSidebar";
 import { useSelectedPlace } from "./useSelectedPlace";
-import { useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
-const MapComponent = () => {
+interface MapComponentProps {
+  initialData?: string;
+}
+
+const MapComponent = ({ initialData }: MapComponentProps) => {
   const [showPlaceDetail, setShowModal] = useState(false);
   const [mapLoading, setMapLoading] = useState(true);
   const [modalLoading, setModalLoading] = useState(false);
@@ -18,60 +22,108 @@ const MapComponent = () => {
 
   const mapElement = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
-  const params = useSearchParams();
+  const pathname = usePathname();
+
+  // Handle custom events from dynamic routes
+  useEffect(() => {
+    const handlePlaceDataUpdate = (event: any) => {
+      const { placeId, articles } = event.detail;
+
+      if (placeId && articles) {
+        setSelectedArticles({
+          place_id: placeId,
+          articles: articles,
+          address: articles[0]?.location_name || null,
+        });
+        setShowModal(true);
+        setModalLoading(false);
+      }
+    };
+
+    // Add event listener
+    window.addEventListener("place-data-update", handlePlaceDataUpdate);
+
+    // Clean up
+    return () => {
+      window.removeEventListener("place-data-update", handlePlaceDataUpdate);
+    };
+  }, []);
+
+  // Legacy initialData support (for direct loading without custom events)
+  useEffect(() => {
+    if (initialData && !selectedArticles) {
+      try {
+        const parsedData = JSON.parse(initialData);
+        if (parsedData.place_id && parsedData.articles) {
+          setSelectedArticles({
+            place_id: parsedData.place_id,
+            articles: parsedData.articles,
+            address: parsedData.articles[0]?.location_name || null,
+          });
+          setShowModal(true);
+          setModalLoading(false);
+        }
+      } catch (error) {
+        console.error("Failed to parse initial data:", error);
+      }
+    }
+  }, [initialData]);
 
   const handleFeatureClick = (place_id: string, title?: string) => {
-    getSelectedArticles(place_id, title);
+    // Just navigate to the new place_id - the route change will trigger data fetching
+    setSelectedPlace(place_id);
   };
 
-  const getSelectedArticles = async (place_id: string, title?: string) => {
-    setShowModal(true);
-    setModalLoading(true);
-    await fetch(`/nyc/live/articles/${place_id}`)
-      .then((response) => response.json())
-      .then((data) => {
+  // Fetch articles when selectedPlace changes or when we need to show articles for the current place
+  useEffect(() => {
+    const fetchArticlesForPlace = async () => {
+      // Skip fetching if we already have the data or there's no selected place
+      if (!selectedPlace) return;
+
+      if (
+        selectedArticles?.place_id === selectedPlace &&
+        selectedArticles.articles.length > 0
+      ) {
+        setShowModal(true);
+        return;
+      }
+
+      setShowModal(true);
+      setModalLoading(true);
+      try {
+        const response = await fetch(`/nyc/live/articles/${selectedPlace}`);
+        const data = await response.json();
         setSelectedArticles({
-          address: title ?? null,
-          place_id,
+          address: null, // Will be updated from the data if available
+          place_id: selectedPlace,
           articles: data,
         });
-        setSelectedPlace(place_id);
         setModalLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error(error);
         setModalLoading(false);
-      });
-  };
+      }
+    };
+
+    // If we have a selected place, fetch articles for it
+    if (selectedPlace && !mapLoading) {
+      fetchArticlesForPlace();
+    }
+  }, [selectedPlace, mapLoading]);
 
   useEffect(() => {
-    const place_id = params.get("place_id");
-    if (place_id !== selectedPlace && place_id) {
-      setSelectedPlace(place_id);
-    }
-
     if (!showPlaceDetail && selectedPlace) {
+      // Just close the modal without changing the URL when it's dismissed
       setSelectedArticles(null);
-      setSelectedPlace(null);
     }
-  }, [showPlaceDetail, params]);
-
-  useEffect(() => {
-    if (
-      selectedPlace &&
-      !((selectedArticles?.articles?.length || 0) > 0) &&
-      !mapLoading
-    ) {
-      getSelectedArticles(selectedPlace);
-    }
-  }, [selectedPlace, selectedArticles, mapLoading]);
+  }, [showPlaceDetail]);
 
   useEffect(() => {
     if (selectedPlace && mapRef?.current && !mapLoading) {
       const selectedFeature = mapRef.current.querySourceFeatures("locations", {
         filter: ["==", "place_id", selectedPlace],
       })?.[0];
-      console.log(selectedFeature);
+
       if (selectedFeature) {
         mapRef.current.flyTo({
           // @ts-expect-error
