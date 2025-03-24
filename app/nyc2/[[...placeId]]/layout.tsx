@@ -1,4 +1,4 @@
-import Tutorial from "@/app/nyc/Tutorial";
+import Tutorial from "./Tutorial";
 import { fetchArticlesForPlace } from "./fetchArticlesForPlace";
 import About from "@/app/nyc/About";
 import PlacePage from "./PlacePage";
