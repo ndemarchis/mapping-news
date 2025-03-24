@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from "react";
 
 type PlaceId = string | null;
@@ -10,31 +10,34 @@ export const useSelectedPlace = () => {
 
   const router = useRouter();
   const pathname = usePathname();
-  const params = useSearchParams();
-  const place_id = params.get("place_id");
+  
+  // Extract place_id from the pathname
+  const extractPlaceId = (): PlaceId => {
+    const segments = pathname.split('/');
+    const lastSegment = segments[segments.length - 1];
+    // If the lastSegment is 'nyc', there's no place_id in the path
+    return lastSegment === 'nyc' ? null : lastSegment;
+  };
 
-  const handleSelectedPlace = (placeId: string) => {
+  // Update the local state based on the URL
+  useEffect(() => {
+    const pathPlaceId = extractPlaceId();
+    setSelectedPlace(pathPlaceId);
+  }, [pathname]);
+
+  // Custom setter that updates both state and URL
+  const handleSelectedPlace = (placeId: string | null) => {
     if (placeId === selectedPlace) {
       return;
     }
 
-    const newParams = new URLSearchParams(Array.from(params.entries()));
-
+    // Only update the URL, the state will be updated by the effect above
     if (placeId === null) {
-      newParams.delete("place_id");
+      router.push('/nyc');
     } else {
-      newParams.set("place_id", placeId);
+      router.push(`/nyc/${placeId}`);
     }
-
-    setSelectedPlace(placeId);
-    router.push(`${pathname}?${newParams.toString()}`);
   };
-
-  useEffect(() => {
-    if (place_id) {
-      setSelectedPlace(place_id as string);
-    }
-  }, [place_id]);
 
   return [selectedPlace, handleSelectedPlace] as [
     PlaceId,
