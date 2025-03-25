@@ -4,12 +4,14 @@ import Modal from "@/components/shared/modal";
 import useMediaQuery from "@/lib/hooks/use-media-query";
 import { use, useState } from "react";
 import type { fetchArticlesForPlace } from "./fetchArticlesForPlace";
+import { fetchLocations } from "./fetchLocations";
 
 type Props = {
   articles: Awaited<ReturnType<typeof fetchArticlesForPlace>>;
+  geoJson: Awaited<ReturnType<typeof fetchLocations>>;
 };
 
-const PlacePage = ({ articles }: Props) => {
+const PlacePage = ({ articles, geoJson }: Props) => {
   const { isMobile } = useMediaQuery();
   const [showModal, setShowModal] = useState(false);
 
