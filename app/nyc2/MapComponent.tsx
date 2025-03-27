@@ -2,9 +2,11 @@
 
 import { ModifiedFeatureCollection } from "@/app/nyc/types";
 import { LoadingDots } from "@/components/shared/icons";
-import { Map, NavigationControl } from "maplibre-gl";
-import { useRouter } from "next/navigation";
+import { Listener, Map, NavigationControl } from "maplibre-gl";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+
+import "maplibre-gl/dist/maplibre-gl.css";
 
 const sizeDependentDotStyles = {
   radius: 5,
@@ -17,8 +19,50 @@ const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
   const [mapLoading, setMapLoading] = useState(true);
   const router = useRouter();
 
+  const pathname = usePathname();
+  const placeId = pathname.split("/").pop();
+
   const handleFeatureClick = (placeId: string, title: string) => {
     router.push(`/nyc2/${placeId}`);
+
+    if (mapRef.current && placeId) {
+      const selectedFeature = mapRef.current.querySourceFeatures("locations", {
+        filter: ["==", "place_id", placeId],
+      })?.[0];
+
+      if (placeId) {
+        mapRef.current.flyTo({
+          // @ts-expect-error
+          center: selectedFeature?.geometry?.coordinates,
+          zoom: 11.5,
+        });
+      }
+    }
+  };
+
+  const onLocationsClick: Listener = (e) => {
+    const feature = e.features?.[0];
+    if (feature) {
+      const { place_id, title } = feature.properties;
+      handleFeatureClick(place_id, title);
+    }
+  };
+
+  const onLocationsMouseEnter: Listener = (e) => {
+    if (mapRef.current) {
+      mapRef.current.getCanvas().style.cursor = "pointer";
+    }
+
+    const feature = e.features?.[0];
+    if (feature) {
+      router.prefetch(`/nyc2/${feature.properties.place_id}`);
+    }
+  };
+
+  const onLocationsMouseLeave: Listener = () => {
+    if (mapRef.current) {
+      mapRef.current.getCanvas().style.cursor = "";
+    }
   };
 
   useEffect(() => {
@@ -73,30 +117,9 @@ const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
           }
         });
 
-        mapRef.current?.on("click", "locations", (e: any) => {
-          const feature = e.features?.[0];
-          if (feature) {
-            const { place_id, title } = feature.properties;
-            handleFeatureClick(place_id, title);
-          }
-        });
-
-        mapRef.current?.on("mouseenter", "locations", (e: any) => {
-          if (mapRef.current) {
-            mapRef.current.getCanvas().style.cursor = "pointer";
-          }
-
-          const feature = e.features?.[0];
-          if (feature) {
-            router.prefetch(`/nyc2/${feature.properties.place_id}`);
-          }
-        });
-
-        mapRef.current?.on("mouseleave", "locations", () => {
-          if (mapRef.current) {
-            mapRef.current.getCanvas().style.cursor = "";
-          }
-        });
+        mapRef.current?.on("click", "locations", onLocationsClick);
+        mapRef.current?.on("mouseenter", "locations", onLocationsMouseEnter);
+        mapRef.current?.on("mouseleave", "locations", onLocationsMouseLeave);
       });
     }
 
@@ -105,6 +128,41 @@ const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
       mapRef.current = null;
     };
   }, [sizeDependentDotStyles.radius, sizeDependentDotStyles.strokeWidth]);
+
+  useEffect(() => {
+    // wait until locations layer is loaded
+
+    if (mapRef.current && placeId && !mapLoading) {
+      if (mapRef.current.getLayer("selected-place")) {
+        mapRef.current.removeLayer("selected-place");
+      }
+
+      mapRef.current.addLayer({
+        id: "selected-place",
+        type: "circle",
+        source: "locations",
+        filter: ["==", "place_id", placeId],
+        paint: {
+          "circle-radius": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            10,
+            ["*", sizeDependentDotStyles.radius, ["get", "dot_size_factor"]],
+            15,
+            [
+              "*",
+              sizeDependentDotStyles.radius * 2,
+              ["get", "dot_size_factor"],
+            ],
+          ],
+          "circle-color": "red",
+          "circle-stroke-width": sizeDependentDotStyles.strokeWidth,
+          "circle-stroke-color": "rgba(255, 255, 255, 0.35)",
+        },
+      });
+    }
+  }, [placeId, mapRef.current, mapLoading]);
 
   return (
     <div
