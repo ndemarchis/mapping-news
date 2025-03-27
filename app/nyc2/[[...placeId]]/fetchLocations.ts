@@ -1,11 +1,13 @@
+'use server';
+
 import { createClient, PostgrestError } from "@supabase/supabase-js";
-import { Database } from "../../nyc/live/database.types";
+import { Database } from "@/app/nyc/live/database.types";
 
 import { ModifiedFeatureCollection, NullableLocation } from "@/app/nyc/types";
 import { isPartiallyNullablePoint, getDotColor, getDotSizeFactor } from "@/app/nyc/live/locations/utils";
 
 const getDataRecursiveCurry =
-  (supabase: ReturnType<typeof createClient<Database>>) =>
+ (supabase: ReturnType<typeof createClient<Database>>) =>
   async (
     start = 0,
   ): Promise<{
@@ -39,8 +41,6 @@ const getDataRecursiveCurry =
 
     return { data, error };
   };
-
-export const revalidate = 600; // 10 minutes
 
 export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
   const supabase = createClient<Database>(

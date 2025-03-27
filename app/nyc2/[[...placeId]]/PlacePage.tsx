@@ -5,6 +5,10 @@ import useMediaQuery from "@/lib/hooks/use-media-query";
 import { use, useState } from "react";
 import type { fetchArticlesForPlace } from "./fetchArticlesForPlace";
 import { fetchLocations } from "./fetchLocations";
+import MapComponent from "./MapComponent";
+
+import "maplibre-gl/dist/maplibre-gl.css";
+import ArticleEntry from "./ArticleEntry";
 
 type Props = {
   articles: Awaited<ReturnType<typeof fetchArticlesForPlace>>;
@@ -18,7 +22,9 @@ const PlacePage = ({ articles, geoJson }: Props) => {
   if (isMobile) {
     return (
       <>
-        <div className="flex flex-col gap-4 p-4">map</div>
+        <div className="z-10 flex flex-col gap-4 p-4">
+          <MapComponent geoJson={geoJson} />
+        </div>
         <Modal showModal={showModal} setShowModal={setShowModal}>
           {articles?.map((a, i) => (
             <p key={i}>{JSON.stringify(a)}</p>
@@ -29,14 +35,15 @@ const PlacePage = ({ articles, geoJson }: Props) => {
   }
 
   return (
-    <div className="grid h-full w-full grid-cols-1 pt-16 mo:grid-cols-[3fr_2fr] md:pb-8">
-      <div className="flex flex-col gap-4 p-4">map</div>
-      <div className="z-10 flex w-full max-w-xl flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-md">
-        {articles?.map((a, i) => (
-          <p key={i}>{JSON.stringify(a)}</p>
+    <>
+      <MapComponent geoJson={geoJson} />
+      <div className="z-10 flex h-[calc(100vh-12rem)] w-full max-w-xl flex-col overflow-x-scroll rounded-xl border border-gray-200 bg-white p-4 shadow-md">
+        {articles?.map((article, i) => (
+          // @ts-expect-error
+          <ArticleEntry key={i} article={article} />
         ))}
       </div>
-    </div>
+    </>
   );
 };
 

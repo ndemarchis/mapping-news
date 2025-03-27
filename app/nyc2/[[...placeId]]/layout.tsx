@@ -19,7 +19,7 @@ const PlaceLayout = async ({
 
   return (
     <>
-      <div className="grid h-full w-full grid-cols-1 pt-16 mo:grid-cols-[3fr_2fr] md:pb-8">
+      <div className="grid h-full w-full grid-cols-1 pt-16 mo:grid-cols-[3fr_2fr] md:pb-8 ">
         <PlacePage articles={articles} geoJson={geoJson} />
       </div>
       <div className="items-left flex w-full p-4 mo:hidden md:max-w-xl">

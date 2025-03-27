@@ -1,3 +1,5 @@
+'use server';
+
 import { Database } from "@/app/nyc/live/database.types";
 import { createClient } from "@supabase/supabase-js";
 
