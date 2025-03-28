@@ -57,8 +57,11 @@ const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
 
     const feature = e.features?.[0];
     if (feature) {
-      const href = getPlaceIdRelativeHref(feature.properties.place_id);
-      router.prefetch(href);
+      const zoom = mapRef?.current?.getZoom() || 0;
+      if (zoom > 11) {
+        const href = getPlaceIdRelativeHref(feature.properties.place_id);
+        router.prefetch(href);
+      }
     }
   };
 
