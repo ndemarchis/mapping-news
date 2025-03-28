@@ -8,7 +8,11 @@ const PlaceLayout = async ({ children, params }: LayoutProps) => {
     Array.isArray(placeId) ? placeId[0] : placeId,
   );
 
-  return <ArticlesWrapper articles={articles}>{children}</ArticlesWrapper>;
+  return (
+    <ArticlesWrapper articles={articles} placeId={placeId}>
+      {children}
+    </ArticlesWrapper>
+  );
 };
 
 export default PlaceLayout;

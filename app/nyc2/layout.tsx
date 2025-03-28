@@ -4,6 +4,7 @@ import { fetchLocations } from "./fetchLocations";
 import MapComponent from "./MapComponent";
 import { Suspense } from "react";
 import MapLoadingSkeleton from "./MapLoadingSkeleton";
+import ResponsivePanelWrapper from "./ResponsivePanelWrapper";
 
 const PlaceLayout = async ({ children }: { children: React.ReactNode }) => {
   const geoJson = await fetchLocations();
@@ -14,7 +15,7 @@ const PlaceLayout = async ({ children }: { children: React.ReactNode }) => {
         <Suspense fallback={<MapLoadingSkeleton />}>
           <MapComponent geoJson={geoJson} />
         </Suspense>
-        {children}
+        <ResponsivePanelWrapper>{children}</ResponsivePanelWrapper>
       </div>
       <div className="items-left flex w-full p-4 mo:hidden md:max-w-xl">
         <div className="z-10 w-full rounded-xl border border-gray-200 bg-white p-4 shadow-md *:*:z-10">
