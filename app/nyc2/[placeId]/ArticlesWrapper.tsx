@@ -26,39 +26,48 @@ const ArticlesWrapper = ({ articles, placeId }: Props) => {
     ?.map((a) => a.location_name)
     .filter(Boolean)?.[0];
 
-  if (isMobile) {
-    return (
-      <Modal showModal={showModal} setShowModal={setShowModal} className="p-4">
+  const SidebarOrModal = ({ children }: React.PropsWithChildren<{}>) => {
+    if (isMobile) {
+      return (
+        <Modal
+          className="flex max-h-[80vh] min-h-[40vh] flex-col gap-4 p-4"
+          showModal={showModal}
+          setShowModal={setShowModal}
+        >
+          {children}
+        </Modal>
+      );
+    } else {
+      return (
+        <div
+          className={`z-10 h-[calc(100vh-12rem)] overflow-y-scroll bg-white p-8 shadow-lg transition-all duration-75`}
+        >
+          {children}
+        </div>
+      );
+    }
+  };
+  const Title = isMobile ? DialogTitle : "div";
+
+  return (
+    <SidebarOrModal>
+      <Suspense fallback={<LoadingDots />}>
         {articles && (
-          <DialogTitle>
+          <Title>
             <ArticlesWrapperNavbar
               locationName={locationName}
               placeId={placeId}
             />
-          </DialogTitle>
+          </Title>
         )}
-        <DialogContent className="flex max-h-[80vh] flex-col gap-1">
+        <div className="flex flex-col gap-1 overflow-y-scroll">
           {articles?.map((article, i) => (
             // @ts-expect-error
             <ArticleEntry key={i} article={article} />
           ))}
-        </DialogContent>
-      </Modal>
-    );
-  }
-
-  return (
-    <Suspense fallback={<LoadingDots />}>
-      {articles && (
-        <ArticlesWrapperNavbar locationName={locationName} placeId={placeId} />
-      )}
-      <div className="flex flex-col gap-1">
-        {articles?.map((article, i) => (
-          // @ts-expect-error
-          <ArticleEntry key={i} article={article} />
-        ))}
-      </div>
-    </Suspense>
+        </div>
+      </Suspense>
+    </SidebarOrModal>
   );
 };
 
