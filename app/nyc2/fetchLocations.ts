@@ -51,8 +51,6 @@ export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
   const getDataRecursive = getDataRecursiveCurry(supabase);
   const { data, error } = await getDataRecursive();
 
-  console.log(`fetched ${data?.length} locations`);
-
   if (!data) {
     return {
       type: "FeatureCollection",

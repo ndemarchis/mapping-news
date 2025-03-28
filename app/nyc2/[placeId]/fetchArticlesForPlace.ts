@@ -26,8 +26,6 @@ export const fetchArticlesForPlace = async (placeId: string) => {
         articles: Article | null;
       }[]
     >;
-
-    console.log(returned);
   
     const { data, error } = returned;
   

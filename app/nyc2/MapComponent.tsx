@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import "maplibre-gl/dist/maplibre-gl.css";
+import { getPlaceIdRelativeHref } from "./getPlaceIdRelativeHref";
 
 const sizeDependentDotStyles = {
   radius: 5,
@@ -23,7 +24,8 @@ const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
   const placeId = pathname.split("/").pop();
 
   const handleFeatureClick = (placeId: string, title: string) => {
-    router.push(`/nyc2/${placeId}`);
+    const href = getPlaceIdRelativeHref(placeId);
+    router.push(href);
 
     if (mapRef.current && placeId) {
       const selectedFeature = mapRef.current.querySourceFeatures("locations", {
@@ -55,7 +57,8 @@ const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
 
     const feature = e.features?.[0];
     if (feature) {
-      router.prefetch(`/nyc2/${feature.properties.place_id}`);
+      const href = getPlaceIdRelativeHref(feature.properties.place_id);
+      router.prefetch(href);
     }
   };
 

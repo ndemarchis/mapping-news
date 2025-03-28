@@ -2,10 +2,11 @@
 
 import Modal from "@/components/shared/modal";
 import useMediaQuery from "@/lib/hooks/use-media-query";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import type { fetchArticlesForPlace } from "./fetchArticlesForPlace";
 
 import ArticleEntry from "./ArticleEntry";
+import { LoadingDots } from "@/components/shared/icons";
 
 type Props = {
   children?: React.ReactNode;
@@ -27,12 +28,14 @@ const ArticlesWrapper = ({ articles }: Props) => {
   }
 
   return (
-    <div className="z-10 flex h-[calc(100vh-12rem)] w-full max-w-xl flex-col overflow-x-scroll rounded-xl border border-gray-200 bg-white p-4 shadow-md">
-      {articles?.map((article, i) => (
-        // @ts-expect-error
-        <ArticleEntry key={i} article={article} />
-      ))}
-    </div>
+    <Suspense fallback={<LoadingDots />}>
+      <div className="z-10 flex h-[calc(100vh-12rem)] w-full max-w-xl flex-col overflow-x-scroll rounded-xl border border-gray-200 bg-white p-4 shadow-md">
+        {articles?.map((article, i) => (
+          // @ts-expect-error
+          <ArticleEntry key={i} article={article} />
+        ))}
+      </div>
+    </Suspense>
   );
 };
 
