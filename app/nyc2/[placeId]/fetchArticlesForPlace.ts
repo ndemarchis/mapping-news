@@ -26,6 +26,8 @@ export const fetchArticlesForPlace = async (placeId: string) => {
         articles: Article | null;
       }[]
     >;
+
+    console.log('supabase request for ', placeId);
   
     const { data, error } = returned;
   

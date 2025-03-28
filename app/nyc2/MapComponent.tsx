@@ -33,10 +33,11 @@ const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
       })?.[0];
 
       if (placeId) {
+        const zoom = mapRef?.current?.getZoom() || 0;
         mapRef.current.flyTo({
           // @ts-expect-error
           center: selectedFeature?.geometry?.coordinates,
-          zoom: 11.5,
+          zoom: Math.max(zoom, 11.5),
         });
       }
     }
@@ -58,7 +59,7 @@ const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
     const feature = e.features?.[0];
     if (feature) {
       const zoom = mapRef?.current?.getZoom() || 0;
-      if (zoom > 11) {
+      if (zoom > 13.5) {
         const href = getPlaceIdRelativeHref(feature.properties.place_id);
         router.prefetch(href);
       }

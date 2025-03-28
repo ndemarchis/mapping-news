@@ -2,6 +2,7 @@ import { Database } from "@/app/nyc/live/database.types";
 import Link from "@/components/shared/link";
 import NextLink from "next/link";
 import { ArrowRight, Map } from "lucide-react";
+import { getPlaceIdRelativeHref } from "../getPlaceIdRelativeHref";
 
 export const ArticleLocationEntry = ({
   relation,
@@ -12,7 +13,7 @@ export const ArticleLocationEntry = ({
     <span className="flex flex-row items-start gap-2">
       <NextLink
         className="group flex flex-row items-start gap-1 text-pretty text-left text-gray-500 transition-all duration-75 hover:cursor-pointer hover:text-gray-800 hover:underline active:bg-gray-100"
-        href={`/nyc2/${relation.place_id}`}
+        href={getPlaceIdRelativeHref(relation?.place_id)}
       >
         {relation.location_name}
         <ArrowRight
