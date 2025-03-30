@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Database } from "../../nyc/live/database.types";
+import { Database } from "../live/database.types";
 import { fetchRecentLocations } from "./fetchRecentLocations";
 import { ArticleLocationEntry } from "@/app/nyc/ArticleLocationEntry";
 

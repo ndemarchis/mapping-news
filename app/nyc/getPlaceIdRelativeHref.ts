@@ -1,4 +1,4 @@
 export const getPlaceIdRelativeHref = (placeId?: string | null) => {
-  if (!placeId) return "/nyc2";
-  return `/nyc2/${placeId}`;
+  if (!placeId) return "/nyc";
+  return `/nyc/${placeId}`;
 };
