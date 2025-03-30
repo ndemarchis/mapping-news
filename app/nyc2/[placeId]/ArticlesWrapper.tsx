@@ -10,8 +10,7 @@ import { LoadingDots } from "@/components/shared/icons";
 import Link from "@/components/shared/link";
 import { Map, Share, X } from "lucide-react";
 import { getPlaceIdRelativeHref } from "../getPlaceIdRelativeHref";
-import ResponsivePanelWrapper from "../ResponsivePanelWrapper";
-import { DialogContent, DialogTitle } from "@radix-ui/react-dialog";
+import { DialogTitle } from "@radix-ui/react-dialog";
 
 type Props = {
   children?: React.ReactNode;
@@ -30,7 +29,7 @@ const ArticlesWrapper = ({ articles, placeId }: Props) => {
     if (isMobile) {
       return (
         <Modal
-          className="flex max-h-[80vh] min-h-[40vh] flex-col gap-4 p-4"
+          className="flex max-h-[80vh] min-h-[40vh] flex-col"
           showModal={showModal}
           setShowModal={setShowModal}
         >
@@ -39,9 +38,7 @@ const ArticlesWrapper = ({ articles, placeId }: Props) => {
       );
     } else {
       return (
-        <div
-          className={`z-10 h-[calc(100vh-12rem)] overflow-y-scroll bg-white p-8 shadow-lg transition-all duration-75`}
-        >
+        <div className="z-10 h-[calc(100vh-12rem)] overflow-y-scroll bg-white shadow-lg transition-all duration-75">
           {children}
         </div>
       );
@@ -60,7 +57,7 @@ const ArticlesWrapper = ({ articles, placeId }: Props) => {
             />
           </Title>
         )}
-        <div className="flex flex-col gap-1 overflow-y-scroll">
+        <div className="flex flex-col gap-1 overflow-y-scroll p-2 mo:px-4">
           {articles?.map((article, i) => (
             // @ts-expect-error
             <ArticleEntry key={i} article={article} />
@@ -81,7 +78,7 @@ const ArticlesWrapperNavbar = ({
   placeId?: string;
 }) => {
   return (
-    <span className="flex flex-row items-start gap-4 p-4 mo:pt-8">
+    <span className="flex flex-row items-start gap-4 px-6 py-4 mo:px-8">
       <span className="w-full text-balance font-display text-2xl font-bold">
         {locationName}
       </span>
