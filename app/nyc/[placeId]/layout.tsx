@@ -1,6 +1,6 @@
 import { fetchArticlesForPlace } from "./fetchArticlesForPlace";
 import ArticlesWrapper from "./ArticlesWrapper";
-import { LayoutProps } from ".next/types/app/nyc2/[placeId]/layout";
+import type { LayoutProps } from ".next/types/app/nyc2/[placeId]/layout";
 
 const PlaceLayout = async ({ children, params }: LayoutProps) => {
   const { placeId } = await params;
