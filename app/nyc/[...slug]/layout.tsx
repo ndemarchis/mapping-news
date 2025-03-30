@@ -6,12 +6,13 @@ const PlaceLayout = async ({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ placeId: string }>;
+  params: Promise<{ slug: [string, ...(string | undefined)[]] }>;
 }) => {
-  const { placeId } = await params;
-  const articles = await fetchArticlesForPlace(
-    Array.isArray(placeId) ? placeId[0] : placeId,
-  );
+  const [placeId, loadAll] = (await params)?.slug;
+  const articles = await fetchArticlesForPlace({
+    placeId: Array.isArray(placeId) ? placeId[0] : placeId,
+    loadAll: loadAll === "full",
+  });
 
   return (
     <ArticlesWrapper articles={articles} placeId={placeId}>

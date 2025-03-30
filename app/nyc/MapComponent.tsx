@@ -26,21 +26,6 @@ const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
   const handleFeatureClick = (placeId: string, title: string) => {
     const href = getPlaceIdRelativeHref(placeId);
     router.push(href);
-
-    if (mapRef.current && placeId) {
-      const selectedFeature = mapRef.current.querySourceFeatures("locations", {
-        filter: ["==", "place_id", placeId],
-      })?.[0];
-
-      if (placeId) {
-        const zoom = mapRef?.current?.getZoom() || 0;
-        mapRef.current.flyTo({
-          // @ts-expect-error
-          center: selectedFeature?.geometry?.coordinates,
-          zoom: Math.max(zoom, 11.5),
-        });
-      }
-    }
   };
 
   const onLocationsClick: Listener = (e) => {
@@ -167,6 +152,17 @@ const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
           "circle-stroke-width": sizeDependentDotStyles.strokeWidth,
           "circle-stroke-color": "rgba(255, 255, 255, 0.35)",
         },
+      });
+
+      const selectedFeature = mapRef.current.querySourceFeatures("locations", {
+        filter: ["==", "place_id", placeId],
+      })?.[0];
+
+      const zoom = mapRef?.current?.getZoom() || 0;
+      mapRef.current.flyTo({
+        // @ts-expect-error
+        center: selectedFeature?.geometry?.coordinates,
+        zoom: Math.max(zoom, 11.5),
       });
     }
   }, [placeId, mapRef.current, mapLoading]);

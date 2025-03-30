@@ -38,7 +38,7 @@ const ArticlesWrapper = ({ articles, placeId }: Props) => {
       );
     } else {
       return (
-        <div className="z-10 h-[calc(100vh-12rem)] overflow-y-scroll bg-white shadow-lg transition-all duration-75">
+        <div className="z-10 flex h-[calc(100vh-12rem)] flex-col overflow-y-scroll bg-white shadow-lg transition-all duration-75">
           {children}
         </div>
       );
@@ -62,6 +62,15 @@ const ArticlesWrapper = ({ articles, placeId }: Props) => {
             // @ts-expect-error
             <ArticleEntry key={i} article={article} />
           ))}
+          {articles?.length === 20 && (
+            <Link
+              href={`/nyc/${placeId}/full`}
+              sameWindow
+              className="flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 transition-all duration-75 hover:border-gray-800 focus:outline-none active:bg-gray-100"
+            >
+              load more articles
+            </Link>
+          )}
         </div>
       </Suspense>
     </SidebarOrModal>

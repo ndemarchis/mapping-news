@@ -1,4 +1,4 @@
-import Tutorial from "./[placeId]/Tutorial";
+import Tutorial from "./[...slug]/Tutorial";
 import About from "@/app/nyc/About";
 import { fetchLocations } from "./fetchLocations";
 import MapComponent from "./MapComponent";

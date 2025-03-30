@@ -85,9 +85,8 @@ const ArticleEntry = ({
               {locations.map((relation, index) => (
                 <ArticleLocationEntry
                   key={`${relation.id}${index}`}
-                  relation={relation}
-                  index={index}
-                  setSelectedPlace={setSelectedPlace}
+                  locationName={relation.location_name}
+                  placeId={relation.place_id}
                 />
               ))}
             </ul>
