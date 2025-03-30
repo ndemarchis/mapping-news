@@ -1,8 +1,13 @@
 import { fetchArticlesForPlace } from "./fetchArticlesForPlace";
 import ArticlesWrapper from "./ArticlesWrapper";
-import type { LayoutProps } from ".next/types/app/nyc2/[placeId]/layout";
 
-const PlaceLayout = async ({ children, params }: LayoutProps) => {
+const PlaceLayout = async ({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ placeId: string }>;
+}) => {
   const { placeId } = await params;
   const articles = await fetchArticlesForPlace(
     Array.isArray(placeId) ? placeId[0] : placeId,
