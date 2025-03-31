@@ -13,13 +13,13 @@ export const ArticleLocationEntry = ({
 }) => (
   <li className="text-xs text-gray-500">
     <Link
-      className="hover group flex flex-row items-start gap-1 text-pretty text-left text-gray-500 transition-all duration-75 hover:cursor-pointer hover:text-gray-800 hover:underline active:bg-gray-100"
+      className="hover group text-pretty text-left text-gray-500 transition-all duration-75 hover:cursor-pointer hover:text-gray-800 hover:underline active:bg-gray-100"
       href={getPlaceIdRelativeHref(place_id)}
       sameWindow
     >
-      {location_name}
+      <span className="inline">{location_name} </span>
       <ArrowRight
-        className="transition-all group-hover:translate-x-[0.125rem]"
+        className="inline transition-all group-hover:translate-x-[0.125rem]"
         size="14px"
       />
     </Link>
