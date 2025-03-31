@@ -1,22 +1,14 @@
 import Link from "@/components/shared/link";
 import * as Collapsible from "@radix-ui/react-collapsible";
-import { ArticleDefinition } from "./types";
-import { ModifiedEntriesWithDots } from "./ModifiedEntries";
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
-import { Database } from "./live/database.types";
 import { LoadingDots } from "@/components/shared/icons";
-import { ArticleLocationEntry } from "./ArticleLocationEntry";
+import { ArticleLocationEntry } from "../ArticleLocationEntry";
+import { Database } from "@/app/nyc/live/database.types";
+import { ModifiedEntriesWithDots } from "@/app/nyc/ModifiedEntries";
+import { ArticleDefinition } from "@/app/nyc/types";
 
-const ArticleEntry = ({
-  article,
-  showLocationInfo,
-  setSelectedPlace,
-}: {
-  article: ArticleDefinition;
-  showLocationInfo?: boolean;
-  setSelectedPlace: (place_id: string, title?: string) => void;
-}) => {
+const ArticleEntry = ({ article }: { article: ArticleDefinition }) => {
   const [isLocationsOpen, setIsLocationsOpen] = useState(false);
   const [isLocationsLoading, setIsLocationsLoading] = useState(false);
   const [locations, setLocations] = useState<
@@ -40,9 +32,7 @@ const ArticleEntry = ({
     }
     setIsLocationsOpen(open);
   };
-  const conditionalLocationName = (["location_name"] as const).filter(() =>
-    Boolean(showLocationInfo),
-  );
+  const conditionalLocationName = ["location_name"] as const;
 
   return (
     <Collapsible.Root
@@ -50,7 +40,7 @@ const ArticleEntry = ({
       onOpenChange={onOpenChange}
       asChild
     >
-      <div className="flex flex-col gap-1 rounded-md px-4 py-2 hover:bg-slate-200">
+      <div className="flex flex-col gap-1 rounded-md px-4 py-2 transition-all hover:bg-slate-200 hover:has-[.hover:hover]:bg-transparent">
         <Link className="flex flex-col gap-1" href={article.link as string}>
           <ModifiedEntriesWithDots
             article={article}
@@ -65,7 +55,7 @@ const ArticleEntry = ({
         </Link>
         <Collapsible.Trigger asChild>
           <button
-            className="flex flex-row items-center gap-2 text-xs text-gray-500"
+            className="hover flex flex-row items-center gap-2 text-xs text-gray-500 transition-all hover:text-gray-800 hover:underline"
             disabled={isLocationsLoading}
           >
             <span>See other locations this article mentioned</span>
@@ -85,9 +75,8 @@ const ArticleEntry = ({
               {locations.map((relation, index) => (
                 <ArticleLocationEntry
                   key={`${relation.id}${index}`}
-                  relation={relation}
-                  index={index}
-                  setSelectedPlace={setSelectedPlace}
+                  locationName={relation.location_name ?? undefined}
+                  placeId={relation.place_id ?? undefined}
                 />
               ))}
             </ul>

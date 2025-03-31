@@ -142,6 +142,7 @@ export type Database = {
           formatted_address: string | null;
           lat: number | null;
           lon: number | null;
+          manual_name: string | null;
           place_id: string;
           types: string[] | null;
         };
@@ -150,6 +151,7 @@ export type Database = {
           formatted_address?: string | null;
           lat?: number | null;
           lon?: number | null;
+          manual_name?: string | null;
           place_id: string;
           types?: string[] | null;
         };
@@ -158,6 +160,7 @@ export type Database = {
           formatted_address?: string | null;
           lat?: number | null;
           lon?: number | null;
+          manual_name?: string | null;
           place_id?: string;
           types?: string[] | null;
         };
@@ -198,6 +201,8 @@ export type Database = {
           count: number;
           raw_count: number;
           pub_date: string;
+          article_location_name: string;
+          manual_name: string;
         }[];
       };
       get_sorted_location_article_relations:

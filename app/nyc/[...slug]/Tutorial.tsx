@@ -1,25 +1,12 @@
-"use client";
-
 import { useState, useEffect } from "react";
-import { ArticleLocationEntry } from "./ArticleLocationEntry";
-import { Database } from "./live/database.types";
-const Tutorial = ({
-  setSelectedPlace,
-}: {
-  setSelectedPlace?: (place_id: string, location_name?: string) => void;
-}) => {
-  const [locations, setLocations] = useState<
-    Database["public"]["Functions"]["get_location_stats_recent"]["Returns"]
-  >([]);
+import { Database } from "../live/database.types";
+import { fetchRecentLocations } from "./fetchRecentLocations";
+import { ArticleLocationEntry } from "@/app/nyc/ArticleLocationEntry";
 
-  useEffect(() => {
-    fetch("/nyc/live/locations/recent")
-      .then((res) => res.json())
-      .then(setLocations);
-  }, []);
-
+const Tutorial = async () => {
+  const locations = await fetchRecentLocations();
   return (
-    <div className="box-border flex w-full flex-col items-start gap-2 font-display">
+    <div className="box-border flex w-full flex-col items-start gap-2 p-4 font-display">
       <p className="text-2xl font-bold">
         select a location on the map to get started...
       </p>
@@ -65,15 +52,10 @@ const Tutorial = ({
         {locations.map((location, index) => (
           <ArticleLocationEntry
             key={`${location.place_id}${index}`}
-            relation={{
-              id: location.place_id,
-              place_id: location.place_id,
-              location_name: location.formatted_address,
-              article_uuid: null,
-              created_at: "",
-            }}
-            index={index}
-            setSelectedPlace={setSelectedPlace}
+            locationName={
+              location.manual_name ?? location.article_location_name
+            }
+            placeId={location.place_id}
           />
         ))}
       </ul>

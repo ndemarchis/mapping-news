@@ -1,14 +1,13 @@
+'use server';
+
 import { createClient, PostgrestError } from "@supabase/supabase-js";
-import { Database } from "../database.types";
-import { NullableLocation, ModifiedFeatureCollection } from "../../types";
-import {
-  isPartiallyNullablePoint,
-  getDotSizeFactor,
-  getDotColor,
-} from "./utils";
+import { Database } from "@/app/nyc/live/database.types";
+
+import { ModifiedFeatureCollection, NullableLocation } from "@/app/nyc/types";
+import { isPartiallyNullablePoint, getDotColor, getDotSizeFactor } from "@/app/nyc/live/locations/utils";
 
 const getDataRecursiveCurry =
-  (supabase: ReturnType<typeof createClient<Database>>) =>
+ (supabase: ReturnType<typeof createClient<Database>>) =>
   async (
     start = 0,
   ): Promise<{
@@ -43,9 +42,7 @@ const getDataRecursiveCurry =
     return { data, error };
   };
 
-export const revalidate = 600; // 10 minutes
-
-export async function GET() {
+export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
   const supabase = createClient<Database>(
     process.env.SUPABASE_URL || "",
     process.env.SUPABASE_API_KEY || "",
@@ -54,15 +51,16 @@ export async function GET() {
   const getDataRecursive = getDataRecursiveCurry(supabase);
   const { data, error } = await getDataRecursive();
 
-  console.log(`fetched ${data?.length} locations`);
-
   if (!data) {
-    return Response.json([]);
+    return {
+      type: "FeatureCollection",
+      features: [],
+    };
   }
 
   if (error) {
     console.error(error);
-    return Response.error();
+    throw new Error(error.message);
   }
 
   const today = new Date();
@@ -70,7 +68,7 @@ export async function GET() {
 
   console.log(`returning GeoJSON for ${filteredData.length} locations`);
 
-  const geoJson: ModifiedFeatureCollection = {
+  return {
     type: "FeatureCollection",
     features: filteredData.map((location) => {
       const pubDate = new Date(location.pub_date || "2022-01-01");
@@ -92,6 +90,4 @@ export async function GET() {
       };
     }),
   };
-
-  return Response.json(geoJson);
 }

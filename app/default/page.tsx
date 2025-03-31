@@ -21,7 +21,7 @@ export default async function Home() {
     },
   )
     .then((res) => res.json())
-    .catch((e) => console.log(e));
+    .catch((e) => console.error(e));
 
   return (
     <>

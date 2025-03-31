@@ -1,142 +1,60 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { Map, NavigationControl } from "maplibre-gl";
-import { ArticlesDefinition } from "./types";
+import { ModifiedFeatureCollection } from "@/app/nyc/types";
 import { LoadingDots } from "@/components/shared/icons";
-import ResponsiveSidebar from "./ResponsiveSidebar";
-import { useSelectedPlace } from "./useSelectedPlace";
-import { usePathname } from "next/navigation";
+import { Listener, Map, NavigationControl } from "maplibre-gl";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
-interface MapComponentProps {
-  initialData?: string;
-}
+import "maplibre-gl/dist/maplibre-gl.css";
+import { getPlaceIdRelativeHref } from "./getPlaceIdRelativeHref";
 
-const MapComponent = ({ initialData }: MapComponentProps) => {
-  const [showPlaceDetail, setShowModal] = useState(false);
-  const [mapLoading, setMapLoading] = useState(true);
-  const [modalLoading, setModalLoading] = useState(false);
-  const [selectedPlace, setSelectedPlace] = useSelectedPlace();
-  const [selectedArticles, setSelectedArticles] =
-    useState<ArticlesDefinition>(null);
+const sizeDependentDotStyles = {
+  radius: 5,
+  strokeWidth: 2,
+};
 
+const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
   const mapElement = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
+  const [mapLoading, setMapLoading] = useState(true);
+  const router = useRouter();
+
   const pathname = usePathname();
+  const placeId = pathname.split("/").pop();
 
-  // Handle custom events from dynamic routes
-  useEffect(() => {
-    const handlePlaceDataUpdate = (event: any) => {
-      const { placeId, articles } = event.detail;
-
-      if (placeId && articles) {
-        setSelectedArticles({
-          place_id: placeId,
-          articles: articles,
-          address: articles[0]?.location_name || null,
-        });
-        setShowModal(true);
-        setModalLoading(false);
-      }
-    };
-
-    // Add event listener
-    window.addEventListener("place-data-update", handlePlaceDataUpdate);
-
-    // Clean up
-    return () => {
-      window.removeEventListener("place-data-update", handlePlaceDataUpdate);
-    };
-  }, []);
-
-  // Legacy initialData support (for direct loading without custom events)
-  useEffect(() => {
-    if (initialData && !selectedArticles) {
-      try {
-        const parsedData = JSON.parse(initialData);
-        if (parsedData.place_id && parsedData.articles) {
-          setSelectedArticles({
-            place_id: parsedData.place_id,
-            articles: parsedData.articles,
-            address: parsedData.articles[0]?.location_name || null,
-          });
-          setShowModal(true);
-          setModalLoading(false);
-        }
-      } catch (error) {
-        console.error("Failed to parse initial data:", error);
-      }
-    }
-  }, [initialData]);
-
-  const handleFeatureClick = (place_id: string, title?: string) => {
-    // Just navigate to the new place_id - the route change will trigger data fetching
-    setSelectedPlace(place_id);
+  const handleFeatureClick = (placeId: string, title: string) => {
+    const href = getPlaceIdRelativeHref(placeId);
+    router.push(href);
   };
 
-  // Fetch articles when selectedPlace changes or when we need to show articles for the current place
-  useEffect(() => {
-    const fetchArticlesForPlace = async () => {
-      // Skip fetching if we already have the data or there's no selected place
-      if (!selectedPlace) return;
-
-      if (
-        selectedArticles?.place_id === selectedPlace &&
-        selectedArticles.articles.length > 0
-      ) {
-        setShowModal(true);
-        return;
-      }
-
-      setShowModal(true);
-      setModalLoading(true);
-      try {
-        const response = await fetch(`/nyc/live/articles/${selectedPlace}`);
-        const data = await response.json();
-        setSelectedArticles({
-          address: null, // Will be updated from the data if available
-          place_id: selectedPlace,
-          articles: data,
-        });
-        setModalLoading(false);
-      } catch (error) {
-        console.error(error);
-        setModalLoading(false);
-      }
-    };
-
-    // If we have a selected place, fetch articles for it
-    if (selectedPlace && !mapLoading) {
-      fetchArticlesForPlace();
+  const onLocationsClick: Listener = (e) => {
+    const feature = e.features?.[0];
+    if (feature) {
+      const { place_id, title } = feature.properties;
+      handleFeatureClick(place_id, title);
     }
-  }, [selectedPlace, mapLoading]);
+  };
 
-  useEffect(() => {
-    if (!showPlaceDetail && selectedPlace) {
-      // Just close the modal without changing the URL when it's dismissed
-      setSelectedArticles(null);
+  const onLocationsMouseEnter: Listener = (e) => {
+    if (mapRef.current) {
+      mapRef.current.getCanvas().style.cursor = "pointer";
     }
-  }, [showPlaceDetail]);
 
-  useEffect(() => {
-    if (selectedPlace && mapRef?.current && !mapLoading) {
-      const selectedFeature = mapRef.current.querySourceFeatures("locations", {
-        filter: ["==", "place_id", selectedPlace],
-      })?.[0];
-
-      if (selectedFeature) {
-        mapRef.current.flyTo({
-          // @ts-expect-error
-          center: selectedFeature?.geometry?.coordinates,
-          zoom: 11.5,
-        });
+    const feature = e.features?.[0];
+    if (feature) {
+      const zoom = mapRef?.current?.getZoom() || 0;
+      if (zoom > 13.5) {
+        const href = getPlaceIdRelativeHref(feature.properties.place_id);
+        router.prefetch(href);
       }
     }
-  }, [selectedPlace, mapLoading]);
+  };
 
-  const sizeDependentDotStyles = {
-    radius: 5,
-    strokeWidth: 2,
+  const onLocationsMouseLeave: Listener = () => {
+    if (mapRef.current) {
+      mapRef.current.getCanvas().style.cursor = "";
+    }
   };
 
   useEffect(() => {
@@ -157,7 +75,8 @@ const MapComponent = ({ initialData }: MapComponentProps) => {
       mapRef.current.on("load", () => {
         mapRef.current?.addSource("locations", {
           type: "geojson",
-          data: "/nyc/live/locations",
+          // @ts-expect-error string not assignable to number
+          data: geoJson,
         });
 
         mapRef.current?.addLayer({
@@ -190,25 +109,9 @@ const MapComponent = ({ initialData }: MapComponentProps) => {
           }
         });
 
-        mapRef.current?.on("click", "locations", (e: any) => {
-          const feature = e.features?.[0];
-          if (feature) {
-            const { place_id, title } = feature.properties;
-            handleFeatureClick(place_id, title);
-          }
-        });
-
-        mapRef.current?.on("mouseenter", "locations", () => {
-          if (mapRef.current) {
-            mapRef.current.getCanvas().style.cursor = "pointer";
-          }
-        });
-
-        mapRef.current?.on("mouseleave", "locations", () => {
-          if (mapRef.current) {
-            mapRef.current.getCanvas().style.cursor = "";
-          }
-        });
+        mapRef.current?.on("click", "locations", onLocationsClick);
+        mapRef.current?.on("mouseenter", "locations", onLocationsMouseEnter);
+        mapRef.current?.on("mouseleave", "locations", onLocationsMouseLeave);
       });
     }
 
@@ -221,7 +124,7 @@ const MapComponent = ({ initialData }: MapComponentProps) => {
   useEffect(() => {
     // wait until locations layer is loaded
 
-    if (mapRef.current && selectedPlace && !mapLoading) {
+    if (mapRef.current && placeId && !mapLoading) {
       if (mapRef.current.getLayer("selected-place")) {
         mapRef.current.removeLayer("selected-place");
       }
@@ -230,7 +133,7 @@ const MapComponent = ({ initialData }: MapComponentProps) => {
         id: "selected-place",
         type: "circle",
         source: "locations",
-        filter: ["==", "place_id", selectedPlace],
+        filter: ["==", "place_id", placeId],
         paint: {
           "circle-radius": [
             "interpolate",
@@ -250,34 +153,35 @@ const MapComponent = ({ initialData }: MapComponentProps) => {
           "circle-stroke-color": "rgba(255, 255, 255, 0.35)",
         },
       });
+
+      const selectedFeature = mapRef.current.querySourceFeatures("locations", {
+        filter: ["==", "place_id", placeId],
+      })?.[0];
+
+      const zoom = mapRef?.current?.getZoom() || 0;
+      mapRef.current.flyTo({
+        // @ts-expect-error
+        center: selectedFeature?.geometry?.coordinates,
+        zoom: Math.max(zoom, 11.5),
+      });
     }
-  }, [selectedPlace, mapRef.current, mapLoading]);
+  }, [placeId, mapRef.current, mapLoading]);
 
   return (
-    <>
+    <div
+      ref={mapElement}
+      className="map-container relative z-10 h-[calc(100vh-12rem)]"
+    >
       <div
-        ref={mapElement}
-        className={`map-container relative z-10 h-[calc(100vh-12rem)]`}
+        aria-label={mapLoading ? "Loading map data..." : undefined}
+        aria-hidden={mapLoading ? "false" : "true"}
+        className={`pointer-events-none absolute z-50 flex h-[calc(100vh-12rem)] w-full max-w-[3fr] items-center justify-center bg-[#f3feff] transition-all ${
+          mapLoading ? "opacity-70" : "opacity-0"
+        }`}
       >
-        <div
-          aria-label={mapLoading ? "Loading map data..." : undefined}
-          aria-hidden={mapLoading ? "false" : "true"}
-          className={`pointer-events-none absolute z-50 flex h-[calc(100vh-12rem)] w-full max-w-[3fr] items-center justify-center bg-[#f3feff] transition-all ${
-            mapLoading ? "opacity-70" : "opacity-0"
-          }`}
-        >
-          <LoadingDots />
-        </div>
+        <LoadingDots />
       </div>
-      <ResponsiveSidebar
-        showModal={showPlaceDetail}
-        setShowModal={setShowModal}
-        selectedArticles={selectedArticles}
-        setSelectedPlace={handleFeatureClick}
-        loading={modalLoading}
-      />
-    </>
+    </div>
   );
 };
-
 export default MapComponent;
