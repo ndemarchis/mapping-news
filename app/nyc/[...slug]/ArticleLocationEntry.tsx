@@ -12,7 +12,7 @@ export const ArticleLocationEntry = ({
   <li className="text-xs text-gray-500">
     <span className="flex flex-row items-start gap-2">
       <NextLink
-        className="group flex flex-row items-start gap-1 text-pretty text-left text-gray-500 transition-all duration-75 hover:cursor-pointer hover:text-gray-800 hover:underline active:bg-gray-100"
+        className="hover group flex flex-row items-start gap-1 text-pretty text-left text-gray-500 transition-all duration-75 hover:cursor-pointer hover:text-gray-800 hover:underline active:bg-gray-100"
         href={getPlaceIdRelativeHref(relation?.place_id)}
       >
         {relation.location_name}

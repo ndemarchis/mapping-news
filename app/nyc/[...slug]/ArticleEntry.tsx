@@ -40,7 +40,7 @@ const ArticleEntry = ({ article }: { article: ArticleDefinition }) => {
       onOpenChange={onOpenChange}
       asChild
     >
-      <div className="flex flex-col gap-1 rounded-md px-4 py-2 hover:bg-slate-200">
+      <div className="flex flex-col gap-1 rounded-md px-4 py-2 transition-all hover:bg-slate-200 hover:has-[.hover:hover]:bg-transparent">
         <Link className="flex flex-col gap-1" href={article.link as string}>
           <ModifiedEntriesWithDots
             article={article}
@@ -55,7 +55,7 @@ const ArticleEntry = ({ article }: { article: ArticleDefinition }) => {
         </Link>
         <Collapsible.Trigger asChild>
           <button
-            className="flex flex-row items-center gap-2 text-xs text-gray-500"
+            className="hover flex flex-row items-center gap-2 text-xs text-gray-500 transition-all hover:text-gray-800 hover:underline"
             disabled={isLocationsLoading}
           >
             <span>See other locations this article mentioned</span>
