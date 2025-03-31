@@ -3,7 +3,7 @@ import * as Collapsible from "@radix-ui/react-collapsible";
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { LoadingDots } from "@/components/shared/icons";
-import { ArticleLocationEntry } from "./ArticleLocationEntry";
+import { ArticleLocationEntry } from "../ArticleLocationEntry";
 import { Database } from "@/app/nyc/live/database.types";
 import { ModifiedEntriesWithDots } from "@/app/nyc/ModifiedEntries";
 import { ArticleDefinition } from "@/app/nyc/types";
@@ -75,7 +75,8 @@ const ArticleEntry = ({ article }: { article: ArticleDefinition }) => {
               {locations.map((relation, index) => (
                 <ArticleLocationEntry
                   key={`${relation.id}${index}`}
-                  relation={relation}
+                  locationName={relation.location_name ?? undefined}
+                  placeId={relation.place_id ?? undefined}
                 />
               ))}
             </ul>
