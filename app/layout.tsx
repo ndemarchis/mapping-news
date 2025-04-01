@@ -1,5 +1,6 @@
 import "./globals.css";
 import cx from "classnames";
+import type { Metadata } from "next";
 import { sfPro, inter } from "./fonts";
 import Footer from "@/components/layout/footer";
 import { Suspense } from "react";
@@ -7,13 +8,13 @@ import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 import Navbar from "@/components/layout/navbar";
 import { ClerkProvider } from "@clerk/nextjs";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "mapping.news",
-  description: "a news-mapping project",
+  description: "a realtime news-mapping project",
   metadataBase: new URL("https://mapping.news"),
   openGraph: {
     title: "mapping.news",
-    description: "a news-mapping project",
+    description: "a realtime news-mapping project",
     url: "https://mapping.news",
     siteName: "mapping.news",
     locale: "en-US",

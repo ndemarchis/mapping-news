@@ -45,15 +45,17 @@ export const fetchArticlesForPlace = async ({
     return;
   }
 
-  if (!data) {
-    console.error("No data returned from the database");
-    return;
-  }
-
-  return data
+  const toReturn = data
     .map((relation) => ({
       ...relation.articles,
       location_name: relation.location_name,
     }))
     .filter(Boolean);
+
+  if (!toReturn) {
+    console.error("No data returned from the database");
+    return;
+  }
+
+  return toReturn;
 };
