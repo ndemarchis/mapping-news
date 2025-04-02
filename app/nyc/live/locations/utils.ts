@@ -25,7 +25,7 @@ export const getDotColor = ({
   return getColorFromPercentage({ percentage });
 };
 
-const getColorFromPercentage = ({
+export const getColorFromPercentage = ({
   percentage,
   minHue = 195,
   maxHue = 260,

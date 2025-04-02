@@ -3,7 +3,6 @@ import About from "@/app/nyc/About";
 import { fetchLocations } from "./fetchLocations";
 import MapComponent from "./MapComponent";
 import { Suspense } from "react";
-import MapLoadingSkeleton from "./MapLoadingSkeleton";
 
 const PlaceLayout = async ({ children }: { children: React.ReactNode }) => {
   const geoJson = await fetchLocations();
@@ -11,7 +10,7 @@ const PlaceLayout = async ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <div className="grid h-full w-full grid-cols-1 pt-16 mo:grid-cols-[3fr_2fr] mo:pb-8 ">
-        <Suspense fallback={<MapLoadingSkeleton />}>
+        <Suspense>
           <MapComponent geoJson={geoJson} />
         </Suspense>
         <div className="z-10 hidden h-[80vh] w-full max-w-xl overflow-scroll bg-white mo:flex md:h-[calc(100vh-12rem)]">
