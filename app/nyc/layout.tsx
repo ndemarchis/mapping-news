@@ -10,7 +10,7 @@ const PlaceLayout = async ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <div className="grid h-full w-full grid-cols-1 pt-16 mo:grid-cols-[3fr_2fr] mo:pb-8 ">
-        <Suspense>
+        <Suspense fallback={<span>loading MAP...</span>}>
           <MapComponent geoJson={geoJson} />
         </Suspense>
         <div className="z-10 hidden h-[80vh] w-full max-w-xl overflow-scroll bg-white mo:flex md:h-[calc(100vh-12rem)]">

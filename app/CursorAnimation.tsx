@@ -27,7 +27,7 @@ export const CursorAnimation = () => {
           maxHue: 260,
         }),
       };
-      setDots((prev) => [newDot, ...prev].slice(0, 10));
+      setDots((prev) => [newDot, ...prev].slice(0, 50));
     }, 400);
 
     return () => {
