@@ -240,6 +240,7 @@ async def fetch_new_articles() -> List[FeedItem]:
     """Check RSS feeds for new articles that are not included in the local cache."""
     seen_articles: List[Hash] = load_seen_articles_cloud()
     new_articles: List[FeedItem] = []
+    seen_headlines: Set[str] = set()  # Track seen headlines to filter duplicates
 
     feeds = load_feeds()
 
@@ -248,21 +249,23 @@ async def fetch_new_articles() -> List[FeedItem]:
 
     for feed in feeds:
         print(f"0. {feed['name']} (Parsing)")
-        if (articles_count >= TEMP_ARTICLES_LIMIT):
+        if articles_count >= TEMP_ARTICLES_LIMIT:
             continue
         articles = await parse_feed(feed)
         for article in articles:
             hashed_id = hash(article.get("id"))
-            if not hashed_id or (articles_count >= TEMP_ARTICLES_LIMIT):
+            headline = article.get("title")
+            if not hashed_id or articles_count >= TEMP_ARTICLES_LIMIT or headline is None:
                 continue
-            if hashed_id in seen_articles:
-                # print(f"    (Seen: {article.get('title', '')})")
+            if hashed_id in seen_articles or headline in seen_headlines:
+                # Skip articles with duplicate IDs or headlines
                 continue
 
-            print(f"    (New: {article.get('title', '')})")
+            print(f"    (New: {headline})")
             articles_count += 1
             new_articles.append(article)
             seen_articles.append(hashed_id)
+            seen_headlines.add(headline)
 
     # save_seen_articles(seen_articles)
     return new_articles
