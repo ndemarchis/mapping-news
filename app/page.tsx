@@ -21,12 +21,12 @@ export default function Home() {
             alt=""
           />
         </div>
-        <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-8 px-8 text-center mo:max-w-xl">
+        <div className="absolute left-1/2 top-1/2 flex w-full -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-8 px-8 text-center mo:max-w-xl">
           <h1 className="z-50 rounded-lg p-8 transition-all hover:bg-white hover:bg-opacity-50">
             a project to map locations mentioned in local news articles in
             real-time.
           </h1>
-          <span className="z-50 w-fit rounded-lg border border-gray-300 px-3 py-2 opacity-0 transition-all hover:bg-white hover:bg-opacity-50 focus:outline-none active:bg-gray-100 group-hover:opacity-100">
+          <span className="z-50 w-fit rounded-lg border border-gray-300 px-3 py-2 transition-all hover:bg-white hover:bg-opacity-50 focus:outline-none active:bg-gray-100 group-hover:opacity-100 mo:opacity-0">
             click anywhere to enter the site
           </span>
         </div>
