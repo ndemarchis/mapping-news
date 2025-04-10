@@ -9,7 +9,8 @@ import hashlib
 import argparse
 
 sys.path.append(str(Path(__file__).resolve().parent))
-from feedParser import CacheManager, CACHE_DIRECTORY
+from actions.CacheManager import CacheManager
+from feedParser import CACHE_DIRECTORY
 
 class ValidationResults(TypedDict):
     missing_in_cache: int
