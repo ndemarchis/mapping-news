@@ -78,7 +78,6 @@ class FeedItem(TypedDict, total=False):
     fullText: Optional[bool]
     content: Optional[str]
     feed: Optional[Feed]
-    is_duplicate: Optional[bool]
 
 GeocodedLocations = Dict[str, PlaceId | None]
 """Associates string locations with their Google Maps Place IDs, or None."""
@@ -271,66 +270,6 @@ async def fetch_new_articles() -> List[FeedItem]:
     # save_seen_articles(seen_articles)
     return new_articles
 
-def deduplicate_articles(articles: List[FeedItem]) -> List[FeedItem]:
-    """
-    Identify duplicate articles by headline or ID and mark all but one as having no locations.
-    The article with the earliest publication date is considered authoritative.
-    """
-    # Group articles by headline
-    headline_groups: Dict[str, List[FeedItem]] = defaultdict(list)
-    id_groups: Dict[str, List[FeedItem]] = defaultdict(list)
-    
-    # First group by headline
-    for article in articles:
-        headline = article.get("title") or ""
-        if headline:  # Only add non-empty headlines
-            headline_groups[headline].append(article)
-        
-        article_id = article.get("id") or ""
-        if article_id:  # Only add non-empty IDs
-            id_groups[article_id].append(article)
-    
-    # Set to track articles that should be kept as authoritative
-    authoritative_articles: Set[int] = set()
-    
-    # Process headline duplicates
-    for headline, group in headline_groups.items():
-        if len(group) > 1:
-            print(f"Found {len(group)} duplicate articles with headline: {headline}")
-            # Sort by publication date, earliest first
-            sorted_group = sorted(group, key=lambda x: x.get("pub_date") or "")
-            # Mark the earliest as authoritative
-            authoritative_articles.add(id(sorted_group[0]))
-    
-    # Process ID duplicates
-    for article_id, group in id_groups.items():
-        if len(group) > 1:
-            print(f"Found {len(group)} duplicate articles with ID: {article_id}")
-            # Sort by publication date, earliest first
-            sorted_group = sorted(group, key=lambda x: x.get("pub_date") or "")
-            # Mark the earliest as authoritative
-            authoritative_articles.add(id(sorted_group[0]))
-    
-    # Create a new list with duplicates marked
-    result = []
-    for article in articles:
-        title = article.get("title") or ""
-        article_id = article.get("id") or ""
-        
-        if id(article) in authoritative_articles or (
-            len(headline_groups.get(title, [])) <= 1 and 
-            len(id_groups.get(article_id, [])) <= 1
-        ):
-            # This is either an authoritative article or has no duplicates
-            result.append(article)
-        else:
-            # This is a duplicate - mark it to be treated as having no locations
-            # We keep the article but set a flag that will be checked later
-            article["is_duplicate"] = True
-            result.append(article)
-    
-    return result
-
 async def scrap(url: Optional[str]) -> str:
     """Get data from provided article URLs."""
     if not url:
@@ -374,14 +313,6 @@ def add_article_location(article: FeedItem) -> CustomFeedItem:
     client = OpenAI(api_key=key)
 
     print(f"- 2. {article.get('title', '')} (Parsing)")
-    
-    # Skip location parsing for duplicate articles
-    if article.get("is_duplicate", False):
-        print(f"    (Skipping duplicate article)")
-        return {
-            "item": article,
-            "locations": {},
-        }
 
     completion = client.beta.chat.completions.parse(
         model="gpt-4o-mini-2024-07-18",
@@ -657,8 +588,6 @@ async def main() -> None:
         return
 
     print("New articles found.")
-    # Apply deduplication before adding full content
-    new_articles = deduplicate_articles(new_articles)
     full_articles = await add_articles_full_content(new_articles)
 
     new_articles_with_locations = add_article_locations(full_articles)
