@@ -1,15 +1,13 @@
-name: Parse RSS Feeds
+name: Validate Cache Against Database
 
 on:
   schedule:
-    # Run every hour
-    - cron: "*/30 13-22 * * *"
-    - cron: "0 23,0-2,12 * * *"
-    - cron: "0 3-11/2 * * *"
+    # Run daily at midnight UTC
+    - cron: "0 0 * * *"
   workflow_dispatch: # Allow manual triggering
 
 jobs:
-  parse-feeds:
+  validate-cache:
     runs-on: ubuntu-latest
     environment: production
 
@@ -31,25 +29,22 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
-      # Step 4: Download previous cache artifacts if they exist
+      # Step 4: Download latest cache artifacts
       - name: Download cache artifacts
         uses: actions/download-artifact@v3
         with:
           name: cache-artifacts
           path: cache-artifacts
-        continue-on-error: true
 
-      # Step 5: Copy artifacts to cache directory if they exist
+      # Step 5: Copy artifacts to cache directory
       - name: Prepare cache directory
         run: |
           mkdir -p cache
-          if [ -d "cache-artifacts" ]; then
-            cp -r cache-artifacts/* cache/ || true
-          fi
+          cp -r cache-artifacts/* cache/ || true
 
-      # Step 6: Run the feed parser script
-      - name: Run feed parser script
-        run: poetry run python actions/feedParser.py
+      # Step 6: Run the validation script
+      - name: Run validation script
+        run: poetry run python actions/validateCache.py
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
@@ -57,10 +52,15 @@ jobs:
           SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
           SUPABASE_SER_KEY: ${{ secrets.SUPABASE_SER_KEY }}
 
-      # Step 7: Upload cache artifacts
-      - name: Upload cache artifacts
-        uses: actions/upload-artifact@v3
+      # Step 7: Create GitHub issue if discrepancies found
+      - name: Create issue on failure
+        if: failure()
+        uses: actions/github-script@v6
         with:
-          name: cache-artifacts
-          path: cache/
-          retention-days: 7
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Cache validation failed',
+              body: 'The daily cache validation detected discrepancies between the cache artifacts and the database. Please check the workflow logs for details.'
+            })
