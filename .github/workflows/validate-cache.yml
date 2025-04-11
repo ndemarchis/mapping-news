@@ -25,22 +25,22 @@ jobs:
         run: |
           pip install poetry
 
-      # Step 3: Install dependencies
+      # Step 3: Restore cache
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          path: cache
+          key: ${{ runner.os }}-cache-artifacts
+          restore-keys: |
+            ${{ runner.os }}-cache-artifacts
+
+      # Step 4: Install dependencies
       - name: Install dependencies
         run: poetry install
 
-      # Step 4: Download latest cache artifacts
-      - name: Download cache artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: cache-artifacts
-          path: cache-artifacts
-
-      # Step 5: Copy artifacts to cache directory
+      # Step 5: Prepare cache directory
       - name: Prepare cache directory
-        run: |
-          mkdir -p cache
-          cp -r cache-artifacts/* cache/ || true
+        run: mkdir -p cache
 
       # Step 6: Run the validation script
       - name: Run validation script
@@ -52,15 +52,9 @@ jobs:
           SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
           SUPABASE_SER_KEY: ${{ secrets.SUPABASE_SER_KEY }}
 
-      # Step 7: Create GitHub issue if discrepancies found
-      - name: Create issue on failure
-        if: failure()
-        uses: actions/github-script@v6
+      # Step 7: Save cache
+      - name: Save cache
+        uses: actions/cache@v4
         with:
-          script: |
-            github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: '🚨 Cache validation failed',
-              body: 'The daily cache validation detected discrepancies between the cache artifacts and the database. Please check the workflow logs for details.'
-            })
+          path: cache
+          key: ${{ runner.os }}-cache-artifacts

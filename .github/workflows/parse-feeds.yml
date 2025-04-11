@@ -27,40 +27,24 @@ jobs:
         run: |
           pip install poetry
 
-      # Step 3: Install dependencies
+      # Step 3: Restore cache
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          path: cache
+          key: ${{ runner.os }}-cache-artifacts
+          restore-keys: |
+            ${{ runner.os }}-cache-artifacts
+
+      # Step 4: Install dependencies
       - name: Install dependencies
         run: poetry install
 
-      # Step 4: Download previous cache artifacts if they exist
-      - name: Download cache artifacts
-        id: download-cache
-        uses: actions/download-artifact@v4
-        with:
-          name: cache-artifacts
-          path: cache-artifacts
-        continue-on-error: true
-
-      # Step 5: Check if cache exists and create if needed
-      - name: Check and create cache
-        if: steps.download-cache.outcome == 'failure'
-        run: |
-          mkdir -p cache
-          poetry run python actions/validateCache.py --reconcile
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
-          SUPABASE_SER_KEY: ${{ secrets.SUPABASE_SER_KEY }}
-
-      # Step 6: Copy artifacts to cache directory if they exist
+      # Step 5: Prepare cache directory
       - name: Prepare cache directory
-        if: steps.download-cache.outcome == 'success'
-        run: |
-          mkdir -p cache
-          cp -r cache-artifacts/* cache/ || true
+        run: mkdir -p cache
 
-      # Step 7: Run the feed parser script
+      # Step 6: Run the feed parser script
       - name: Run feed parser script
         run: poetry run python actions/feedParser.py
         env:
@@ -70,10 +54,9 @@ jobs:
           SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
           SUPABASE_SER_KEY: ${{ secrets.SUPABASE_SER_KEY }}
 
-      # Step 8: Upload cache artifacts
-      - name: Upload cache artifacts
-        uses: actions/upload-artifact@v4
+      # Step 7: Save cache
+      - name: Save cache
+        uses: actions/cache@v4
         with:
-          name: cache-artifacts
-          path: cache/
-          retention-days: 7
+          path: cache
+          key: ${{ runner.os }}-cache-artifacts
