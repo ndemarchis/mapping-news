@@ -2,7 +2,6 @@ name: Parse RSS Feeds
 
 on:
   schedule:
-    # Run every hour
     - cron: "*/30 13-22 * * *"
     - cron: "0 23,0-2,12 * * *"
     - cron: "0 3-11/2 * * *"
@@ -14,20 +13,24 @@ jobs:
     environment: production
 
     steps:
-      # Step 1: Check out the repository
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up Python with Poetry
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: "3.12.8"
+
       - name: Install Poetry
         run: |
           pip install poetry
 
-      # Step 3: Restore cache
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Prepare cache directory
+        run: mkdir -p cache
+
       - name: Restore cache
         uses: actions/cache@v4
         with:
@@ -36,15 +39,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cache-artifacts
 
-      # Step 4: Install dependencies
-      - name: Install dependencies
-        run: poetry install
+      # log the files in the cache directory
+      - name: List cache directory
+        run: ls -la cache
 
-      # Step 5: Prepare cache directory
-      - name: Prepare cache directory
-        run: mkdir -p cache
-
-      # Step 6: Run the feed parser script
       - name: Run feed parser script
         run: poetry run python actions/feedParser.py
         env:
@@ -54,7 +52,6 @@ jobs:
           SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
           SUPABASE_SER_KEY: ${{ secrets.SUPABASE_SER_KEY }}
 
-      # Step 7: Save cache
       - name: Save cache
         uses: actions/cache@v4
         with:
