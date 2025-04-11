@@ -17,7 +17,23 @@ poetry install
 you can then run the program as needed
 
 ```bash
+# parse feeds and update the database
 poetry run python actions/feedParser.py
+
+# run in dry-run mode (no database writes)
+poetry run python actions/feedParser.py --dry-run
+
+# sync cache with database (use with caution)
+poetry run python actions/feedParser.py --sync-db
+
+# validate cache against database
+poetry run python actions/validateCache.py
+
+# validate cache with detailed output
+poetry run python actions/validateCache.py --verbose
+
+# reconcile cache with database
+poetry run python actions/validateCache.py --reconcile
 ```
 
 and to start the frontend server
