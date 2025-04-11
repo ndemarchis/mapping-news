@@ -5,6 +5,11 @@ on:
     # Run daily at midnight UTC
     - cron: "0 0 * * *"
   workflow_dispatch: # Allow manual triggering
+    inputs:
+      args:
+        description: "Command line arguments for validateCache.py"
+        default: ""
+        required: false
 
 jobs:
   validate-cache:
@@ -44,7 +49,7 @@ jobs:
 
       # Step 6: Run the validation script
       - name: Run validation script
-        run: poetry run python actions/validateCache.py
+        run: poetry run python actions/validateCache.py ${{ github.event.inputs.args }}
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
