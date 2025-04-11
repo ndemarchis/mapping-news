@@ -33,21 +33,34 @@ jobs:
 
       # Step 4: Download previous cache artifacts if they exist
       - name: Download cache artifacts
+        id: download-cache
         uses: actions/download-artifact@v4
         with:
           name: cache-artifacts
           path: cache-artifacts
         continue-on-error: true
 
-      # Step 5: Copy artifacts to cache directory if they exist
-      - name: Prepare cache directory
+      # Step 5: Check if cache exists and create if needed
+      - name: Check and create cache
+        if: steps.download-cache.outcome == 'failure'
         run: |
           mkdir -p cache
-          if [ -d "cache-artifacts" ]; then
-            cp -r cache-artifacts/* cache/ || true
-          fi
+          poetry run python actions/validateCache.py --reconcile
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
+          SUPABASE_SER_KEY: ${{ secrets.SUPABASE_SER_KEY }}
 
-      # Step 6: Run the feed parser script
+      # Step 6: Copy artifacts to cache directory if they exist
+      - name: Prepare cache directory
+        if: steps.download-cache.outcome == 'success'
+        run: |
+          mkdir -p cache
+          cp -r cache-artifacts/* cache/ || true
+
+      # Step 7: Run the feed parser script
       - name: Run feed parser script
         run: poetry run python actions/feedParser.py
         env:
@@ -57,7 +70,7 @@ jobs:
           SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
           SUPABASE_SER_KEY: ${{ secrets.SUPABASE_SER_KEY }}
 
-      # Step 7: Upload cache artifacts
+      # Step 8: Upload cache artifacts
       - name: Upload cache artifacts
         uses: actions/upload-artifact@v4
         with:
