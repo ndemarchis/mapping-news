@@ -1,8 +1,6 @@
-from actions.feedParser import CACHE_DIRECTORY, Hash, LocationAliasDefinition, LocationArticleRelationsDefinition, PlaceId
-
+from types_consts import CACHE_DIRECTORY, Hash, PlaceId, LocationAliasDefinition, LocationArticleRelationsDefinition
 
 from supabase import Client
-
 
 import json
 from pathlib import Path

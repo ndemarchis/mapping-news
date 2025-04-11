@@ -1,5 +1,5 @@
 from datetime import date
-from typing import List, TypedDict, Optional, Set, Dict, Callable
+from typing import List, Optional, Set, Callable
 from pathlib import Path
 from collections import defaultdict
 import asyncio
@@ -8,95 +8,17 @@ import feedparser # type: ignore
 import os
 import argparse
 from newspaper import Article # type: ignore
-from pydantic import BaseModel
 from openai import OpenAI
 import pandas as pd
 import requests
 from supabase import create_client, Client
 import hashlib
 
-from actions.CacheManager import CacheManager
-
-FEED_FILE = Path(__file__).resolve().parent / "../public/feeds/feeds.csv"
-CACHE_DIRECTORY = Path(__file__).resolve().parent / "../cache/"
-FILTERABLE_LOCATION_TYPES = ["political", "country", "administrative_area_level_1", "administrative_area_level_2","locality","sublocality","neighborhood","postal_code"]
+from CacheManager import CacheManager
+from types_consts import FEED_FILE, FILTERABLE_LOCATION_TYPES, Hash, PlaceId, Feed, FeedItem, CustomFeedItem, AddressArray, LocationsDefinition, OptionalGeoBoundaries, GeocodingResultDefinition, GeocodedLocations,ArticlesDefinition, LocationArticleRelationsDefinition
 
 # Flag to control whether to write to the database
 WRITE_TO_DB = True
-
-Hash = str
-PlaceId = str
-
-class ArticlesDefinition(TypedDict):
-    uuid3: Hash
-    headline: Optional[str]
-    link: Optional[str]
-    pub_date: Optional[str]
-    author: Optional[str]
-    feed_name: Optional[str]
-
-class LocationsDefinition(TypedDict):
-    place_id: PlaceId
-    lat: float
-    lon: float
-    formatted_address: str
-    types: Optional[List[str]]
-
-class LocationArticleRelationsDefinition(TypedDict):
-    id: Hash
-    article_uuid: Hash
-    place_id: PlaceId
-    location_name: Optional[str]
-
-class LocationAliasDefinition(TypedDict):
-    """Maps location name to the place_id of the geocoded location. This is done in the Set method to allow for easier filtering by region in the future, if added."""
-    alias: str
-    place_id: PlaceId
-    geo_boundary_hash: Optional[str]
-
-class GeocodedLocation(TypedDict):
-    lat: float
-    lon: float
-
-class GeoBoundaries(TypedDict):
-    minLat: float
-    minLon: float
-    maxLat: float
-    maxLon: float
-
-class OptionalGeoBoundaries(TypedDict, total=False):
-    minLat: Optional[float]
-    minLon: Optional[float]
-    maxLat: Optional[float]
-    maxLon: Optional[float]
-
-class Feed(OptionalGeoBoundaries):
-    name: str
-    url: str
-
-class FeedItem(TypedDict, total=False):
-    title: Optional[str]
-    link: Optional[str]
-    pub_date: Optional[str]
-    id: Optional[str]
-    author: Optional[str]
-    fullText: Optional[bool]
-    content: Optional[str]
-    feed: Optional[Feed]
-
-GeocodedLocations = Dict[str, PlaceId | None]
-"""Associates string locations with their Google Maps Place IDs, or None."""
-
-class CustomFeedItem(TypedDict):
-    item: FeedItem
-    locations: GeocodedLocations
-
-class AddressArray(BaseModel):
-    locations: List[str]
-
-class GeocodingResultDefinition(TypedDict):
-    articles: List[CustomFeedItem]
-    new_geocoded_full_locations: List[LocationsDefinition]
 
 def read_file_csv(file_path: Path) -> pd.DataFrame:
     df = pd.read_csv(file_path)

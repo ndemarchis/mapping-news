@@ -2,15 +2,12 @@
 import os
 import sys
 import json
-from pathlib import Path
-from typing import List, Dict, Any, Set, TypedDict
+from typing import List, Set, TypedDict
 from supabase import create_client, Client
-import hashlib
 import argparse
 
-sys.path.append(str(Path(__file__).resolve().parent))
-from actions.CacheManager import CacheManager
-from feedParser import CACHE_DIRECTORY
+from CacheManager import CacheManager
+from types_consts import CACHE_DIRECTORY
 
 class ValidationResults(TypedDict):
     missing_in_cache: int
