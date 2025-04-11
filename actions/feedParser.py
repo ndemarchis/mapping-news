@@ -1,97 +1,24 @@
 from datetime import date
-from typing import List, TypedDict, Optional, Set, Dict, Callable
+from typing import List, Optional, Set, Callable
 from pathlib import Path
 from collections import defaultdict
-import json
 import asyncio
 import aiohttp
 import feedparser # type: ignore
 import os
+import argparse
 from newspaper import Article # type: ignore
-from pydantic import BaseModel
 from openai import OpenAI
 import pandas as pd
 import requests
 from supabase import create_client, Client
 import hashlib
 
-FEED_FILE = Path(__file__).resolve().parent / "../public/feeds/feeds.csv"
-CACHE_DIRECTORY = Path(__file__).resolve().parent / "../cache/"
-FILTERABLE_LOCATION_TYPES = ["political", "country", "administrative_area_level_1", "administrative_area_level_2","locality","sublocality","neighborhood","postal_code"]
+from CacheManager import CacheManager
+from types_consts import FEED_FILE, FILTERABLE_LOCATION_TYPES, Hash, PlaceId, Feed, FeedItem, CustomFeedItem, AddressArray, LocationsDefinition, OptionalGeoBoundaries, GeocodingResultDefinition, GeocodedLocations,ArticlesDefinition, LocationArticleRelationsDefinition
 
-Hash = str
-PlaceId = str
-
-class ArticlesDefinition(TypedDict):
-    uuid3: Hash
-    headline: Optional[str]
-    link: Optional[str]
-    pub_date: Optional[str]
-    author: Optional[str]
-    feed_name: Optional[str]
-
-class LocationsDefinition(TypedDict):
-    place_id: PlaceId
-    lat: float
-    lon: float
-    formatted_address: str
-    types: Optional[List[str]]
-
-class LocationArticleRelationsDefinition(TypedDict):
-    id: Hash
-    article_uuid: Hash
-    place_id: PlaceId
-    location_name: Optional[str]
-
-class LocationAliasDefinition(TypedDict):
-    """Maps location name to the place_id of the geocoded location. This is done in the Set method to allow for easier filtering by region in the future, if added."""
-    alias: str
-    place_id: PlaceId
-    geo_boundary_hash: Optional[str]
-
-class GeocodedLocation(TypedDict):
-    lat: float
-    lon: float
-
-class GeoBoundaries(TypedDict):
-    minLat: float
-    minLon: float
-    maxLat: float
-    maxLon: float
-
-class OptionalGeoBoundaries(TypedDict, total=False):
-    minLat: Optional[float]
-    minLon: Optional[float]
-    maxLat: Optional[float]
-    maxLon: Optional[float]
-
-class Feed(OptionalGeoBoundaries):
-    name: str
-    url: str
-
-class FeedItem(TypedDict, total=False):
-    title: Optional[str]
-    link: Optional[str]
-    pub_date: Optional[str]
-    id: Optional[str]
-    author: Optional[str]
-    fullText: Optional[bool]
-    content: Optional[str]
-    feed: Optional[Feed]
-
-GeocodedLocations = Dict[str, PlaceId | None]
-"""Associates string locations with their Google Maps Place IDs, or None."""
-
-class CustomFeedItem(TypedDict):
-    item: FeedItem
-    locations: GeocodedLocations
-
-class AddressArray(BaseModel):
-    locations: List[str]
-
-class GeocodingResultDefinition(TypedDict):
-    articles: List[CustomFeedItem]
-    new_geocoded_full_locations: List[LocationsDefinition]
+# Flag to control whether to write to the database
+WRITE_TO_DB = True
 
 def read_file_csv(file_path: Path) -> pd.DataFrame:
     df = pd.read_csv(file_path)
@@ -125,48 +52,6 @@ def load_feeds() -> List[Feed]:
     } for item in data.to_dict("records")]
     return feeds
 
-def load_seen_articles_cloud() -> List[Hash]:
-    """Get the list of article uuid3s that have been seen before from local cache."""
-    if file_exists(CACHE_DIRECTORY / "articles_CLOUD.json"):
-        return json.loads(read_file(CACHE_DIRECTORY / "articles_CLOUD.json"))
-    return []
-
-def load_seen_articles() -> List[Hash]:
-    """Get the list of article uuid3s that have been seen before from local cache."""
-    if file_exists(CACHE_DIRECTORY / "articles.json"):
-        return json.loads(read_file(CACHE_DIRECTORY / "articles.json"))
-    return []
-
-def load_seen_locations() -> List[PlaceId]:
-    """Get the list of location place_ids that have been seen before from local cache."""
-    if file_exists(CACHE_DIRECTORY / "locations.json"):
-        return json.loads(read_file(CACHE_DIRECTORY / "locations.json"))
-    return []
-
-def load_location_aliases() -> List[LocationAliasDefinition]:
-    """Get the list of location aliases that have been seen before from local cache."""
-    if file_exists(CACHE_DIRECTORY / "location_aliases.json"):
-        return json.loads(read_file(CACHE_DIRECTORY / "location_aliases.json"))
-    return []
-
-def load_location_article_relations() -> List[LocationArticleRelationsDefinition]:
-    if file_exists(CACHE_DIRECTORY / "location_article_relations.json"):
-        return json.loads(read_file(CACHE_DIRECTORY / "location_article_relations.json"))
-    return []
-
-def save_seen_articles(seen_articles: List[Hash]) -> None:
-    """Note that this functions slightly differently than the other two."""
-    write_file(CACHE_DIRECTORY / "articles.json", json.dumps(list(seen_articles), ensure_ascii=False))
-
-def save_seen_locations(seen_locations: List[PlaceId]) -> None:
-    write_file(CACHE_DIRECTORY / "locations_local.json", json.dumps(list(seen_locations), ensure_ascii=False))
-
-def save_location_aliases(seen_location_aliases: List[LocationAliasDefinition]) -> None:
-    write_file(CACHE_DIRECTORY / "location_aliases_local.json", json.dumps(list(seen_location_aliases), ensure_ascii=False))
-
-def save_location_article_relations(location_article_relations: List[LocationArticleRelationsDefinition]) -> None:
-    write_file(CACHE_DIRECTORY / "location_article_relations_local.json", json.dumps(location_article_relations, ensure_ascii=False))
-
 def get_server_articles_recursive(supabase: Client, index: int = 0) -> List[dict]:
     response = supabase.table("articles").select("*").range(index, index + 1000).execute()
     if len(response.data) == 1000:
@@ -186,25 +71,31 @@ def get_server_location_article_relations_recursive(supabase: Client, index: int
     return response.data
 
 def refresh_cache_from_db() -> None:
+    """Update the cache from the database - should only be run when needed to sync."""
     supabase_url = os.getenv("SUPABASE_URL") or ""
     supabase_key = os.getenv("SUPABASE_SER_KEY") or ""
+    cache_mgr = CacheManager()
 
     supabase = create_client(supabase_url, supabase_key)
 
-    # TODO: Type guard results from API
-    # TODO: Better compare data to existing and alert to inconsistencies
+    print("Refreshing cache from database...")
 
+    # Get articles
     prelim_articles_data = get_server_articles_recursive(supabase)
-    articles = set([article["uuid3"] for article in prelim_articles_data])
-    write_file(CACHE_DIRECTORY / "articles_CLOUD.json", json.dumps(list(articles), ensure_ascii=False))
+    articles = [article["uuid3"] for article in prelim_articles_data]
+    cache_mgr.save_seen_articles(articles)
 
+    # Get locations
     prelim_locations = get_server_locations_recursive(supabase)
-    locations = set([location["place_id"] for location in prelim_locations])
-    write_file(CACHE_DIRECTORY / "locations.json", json.dumps(list(locations), ensure_ascii=False))
+    locations = [location["place_id"] for location in prelim_locations]
+    cache_mgr.save_seen_locations(locations)
 
+    # Get location-article relations
     prelim_location_article_relations = get_server_location_article_relations_recursive(supabase)
-    location_article_relations = [relation for relation in prelim_location_article_relations]
-    write_file(CACHE_DIRECTORY / "location_article_relations.json", json.dumps(location_article_relations, ensure_ascii=False))
+    location_article_relations = prelim_location_article_relations
+    cache_mgr.save_location_article_relations(location_article_relations)
+    
+    print(f"Cache refreshed with {len(articles)} articles, {len(locations)} locations, and {len(location_article_relations)} relations")
 
 def hash(string: Optional[str]) -> Hash:
     if not string:
@@ -238,7 +129,8 @@ async def parse_feed(feed: Feed) -> List[FeedItem]:
 
 async def fetch_new_articles() -> List[FeedItem]:
     """Check RSS feeds for new articles that are not included in the local cache."""
-    seen_articles: List[Hash] = load_seen_articles_cloud()
+    cache_mgr = CacheManager()
+    seen_articles: List[Hash] = cache_mgr.load_seen_articles()
     new_articles: List[FeedItem] = []
     seen_headlines: Set[str] = set()  # Track seen headlines to filter duplicates
 
@@ -267,7 +159,7 @@ async def fetch_new_articles() -> List[FeedItem]:
             seen_articles.append(hashed_id)
             seen_headlines.add(headline)
 
-    # save_seen_articles(seen_articles)
+    # No need to save here as we'll update at the end of the workflow
     return new_articles
 
 async def scrap(url: Optional[str]) -> str:
@@ -334,7 +226,8 @@ def add_article_location(article: FeedItem) -> CustomFeedItem:
 
 def filter_new_geocoded_full_locations(new_geocoded_full_locations: List[LocationsDefinition]) -> List[LocationsDefinition]:
     """Filter out locations that are already in the cache, and remove duplicate entries based on their place_id."""
-    seen_locations = load_seen_locations()
+    cache_mgr = CacheManager()
+    seen_locations = cache_mgr.load_seen_locations()
     unseen_locations: List[LocationsDefinition] = []
 
     for location in new_geocoded_full_locations:
@@ -398,7 +291,8 @@ async def geocode_locations(locations: GeocodedLocations, add_new_geocoded_locat
 
 def get_location_in_alias_cache(location: str) -> PlaceId | None:
     """Extract the location from the cache, if present."""
-    aliases = load_location_aliases()
+    cache_mgr = CacheManager()
+    aliases = cache_mgr.load_location_aliases()
     match = [alias for alias in aliases if alias["alias"] == location]
 
     if not match:
@@ -518,6 +412,10 @@ def generate_location_article_relations(items: List[CustomFeedItem]) -> List[Loc
 
 def send_articles_to_db(articles: List[ArticlesDefinition]) -> None:
     """Send articles to the Supabase database."""
+    if not WRITE_TO_DB:
+        print(f"Dry run: Would have sent {len(articles)} articles to Supabase.")
+        return
+    
     supabase_url = os.getenv("SUPABASE_URL") or ""
     supabase_key = os.getenv("SUPABASE_SER_KEY") or ""
 
@@ -530,10 +428,13 @@ def send_articles_to_db(articles: List[ArticlesDefinition]) -> None:
     print(f"- 4. Sending {len(articles)} articles to Supabase")
     print(f"    {len([article for article in articles if article['headline']])} with location data, {len([article for article in articles if not article['headline']])} without")
 
-    pass
     supabase.table("articles").insert(articles, upsert=True).execute()
 
 def send_locations_to_db(locations: List[LocationsDefinition]) -> None:
+    if not WRITE_TO_DB:
+        print(f"Dry run: Would have sent {len(locations)} locations to Supabase.")
+        return
+    
     supabase_url = os.getenv("SUPABASE_URL") or ""
     supabase_key = os.getenv("SUPABASE_SER_KEY") or ""
 
@@ -546,6 +447,10 @@ def send_locations_to_db(locations: List[LocationsDefinition]) -> None:
     supabase.table("locations").insert(list(locations), upsert=True).execute()
 
 def send_location_article_relations_to_db(location_article_relations: List[LocationArticleRelationsDefinition]) -> None:
+    if not WRITE_TO_DB:
+        print(f"Dry run: Would have sent {len(location_article_relations)} location-article relations to Supabase.")
+        return
+    
     supabase_url = os.getenv("SUPABASE_URL") or ""
     supabase_key = os.getenv("SUPABASE_SER_KEY") or ""
 
@@ -559,29 +464,58 @@ def send_location_article_relations_to_db(location_article_relations: List[Locat
 
 def handle_articles_result(new_articles_with_geocoded_locations: List[ArticlesDefinition]) -> None:
     """Add the new articles to the cache."""
-    seen_articles = load_seen_articles_cloud()
+    cache_mgr = CacheManager()
+    seen_articles = cache_mgr.load_seen_articles()
     seen_articles.extend([article["uuid3"] for article in new_articles_with_geocoded_locations])
-    save_seen_articles(seen_articles)
+    cache_mgr.save_seen_articles(seen_articles)
     send_articles_to_db(new_articles_with_geocoded_locations)
 
 def handle_locations_result(new_geocoded_full_locations: List[LocationsDefinition]) -> None:
     """Add the new geocoded locations to the cache."""
-    seen_locations = load_seen_locations()
+    cache_mgr = CacheManager()
+    seen_locations = cache_mgr.load_seen_locations()
     seen_locations.extend([location["place_id"] for location in new_geocoded_full_locations])
-    save_seen_locations([location for location in seen_locations])
-    pass
+    cache_mgr.save_seen_locations(seen_locations)
     send_locations_to_db(new_geocoded_full_locations)
 
 def handle_location_article_relations_result(new_location_article_relations: List[LocationArticleRelationsDefinition]) -> None:
     """Add the new location-article relations to the cache."""
-    location_article_relations = load_location_article_relations()
+    cache_mgr = CacheManager()
+    location_article_relations = cache_mgr.load_location_article_relations()
     location_article_relations.extend(new_location_article_relations)
-    save_location_article_relations(location_article_relations)
+    cache_mgr.save_location_article_relations(location_article_relations)
     send_location_article_relations_to_db(new_location_article_relations)
 
 async def main() -> None:
-    refresh_cache_from_db()
-
+    global WRITE_TO_DB
+    
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Parse RSS feeds and extract location data')
+    parser.add_argument('--dry-run', action='store_true', help='Run without writing to database')
+    parser.add_argument('--sync-db', action='store_true', help='Sync cache with database (use with caution)')
+    args = parser.parse_args()
+    
+    # Update global flag based on command line arguments
+    if args.dry_run:
+        WRITE_TO_DB = False
+        print("Running in dry-run mode - no data will be written to the database")
+    
+    # Initialize cache manager
+    cache_mgr = CacheManager()
+    
+    # Sync with DB if requested (should be rarely needed)
+    if args.sync_db:
+        print("Syncing cache with database...")
+        supabase_url = os.getenv("SUPABASE_URL") or ""
+        supabase_key = os.getenv("SUPABASE_SER_KEY") or ""
+        supabase = create_client(supabase_url, supabase_key)
+        
+        # This would normally be a more complex operation to compare and merge
+        # For now, we'll just refresh the cache
+        refresh_cache_from_db()
+        return
+    
+    # Use the artifact-based cache instead of reading from DB
     new_articles = await fetch_new_articles()
     if not new_articles: 
         print("No new articles found.")
