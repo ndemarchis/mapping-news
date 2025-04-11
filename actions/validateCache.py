@@ -40,13 +40,13 @@ def validate_cache_against_db(table: str, id_field: str, cache_file: str) -> Val
     cache_mgr = CacheManager()
     cache_file_path = CACHE_DIRECTORY / cache_file
     if not cache_file_path.exists():
-        print(f"Cache file {cache_file} does not exist.")
+        print(f"Cache file {cache_file} does not exist. This will be treated as a discrepancy.")
         return {
-            "missing_in_cache": 0,
+            "missing_in_cache": len(db_ids),  # All database entries are missing from cache
             "missing_in_db": 0,
             "total_cache": 0,
             "total_db": len(db_ids),
-            "sample_missing_in_cache": [],
+            "sample_missing_in_cache": list(db_ids)[:10],
             "sample_missing_in_db": []
         }
     
@@ -60,7 +60,15 @@ def validate_cache_against_db(table: str, id_field: str, cache_file: str) -> Val
     elif isinstance(cache_data, list) and all(isinstance(item, dict) for item in cache_data):
         cache_ids = {item.get(id_field) for item in cache_data if id_field in item}
     else:
-        cache_ids = set()
+        print(f"Cache file {cache_file} has invalid format. This will be treated as a discrepancy.")
+        return {
+            "missing_in_cache": len(db_ids),  # All database entries are missing from cache
+            "missing_in_db": 0,
+            "total_cache": 0,
+            "total_db": len(db_ids),
+            "sample_missing_in_cache": list(db_ids)[:10],
+            "sample_missing_in_db": []
+        }
     
     # Find differences
     missing_in_cache = db_ids - cache_ids
