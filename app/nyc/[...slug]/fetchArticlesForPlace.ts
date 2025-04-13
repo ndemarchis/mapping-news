@@ -2,7 +2,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { PostgrestSingleResponse } from "@supabase/postgrest-js";
 import { Database } from "@/app/nyc/live/database.types";
-import { createCache } from "../utils";
 type Article = Database["public"]["Tables"]["articles"]["Row"] & {
   location_name: string;
 };
@@ -25,27 +24,21 @@ export const fetchArticlesForPlace = async ({
     process.env.SUPABASE_API_KEY || "",
   );
 
-  const getSortedLocationArticleRelations = createCache(
-    async () =>
-      await supabase.rpc("get_sorted_location_article_relations", {
-        p_place_id: placeId,
-        p_limit: loadAll ? undefined : DEFAULT_PAGE_SIZE,
-        p_offset: loadAll ? undefined : 0,
-      }),
-    {
-      key: `get_sorted_location_article_relations_${placeId}`,
-      revalidate: 60 * 15,
-    },
-  );
-
-  const { data, error } = (await getSortedLocationArticleRelations())
-    .payload as PostgrestSingleResponse<
+  let returned: PostgrestSingleResponse<
     {
       article_uuid: string;
       location_name: string;
       articles: Article | null;
     }[]
-  >;
+  > = (await supabase.rpc("get_sorted_location_article_relations", {
+    p_place_id: placeId,
+    p_limit: loadAll ? undefined : DEFAULT_PAGE_SIZE,
+    p_offset: loadAll ? undefined : 0,
+  })) as any;
+
+  console.log("supabase request for ", placeId);
+
+  const { data, error } = returned;
 
   if (error) {
     console.error(error);
