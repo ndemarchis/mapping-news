@@ -87,7 +87,7 @@ const ArticlesWrapperNavbar = ({
   placeId?: string;
 }) => {
   return (
-    <span className="flex flex-row items-start gap-4 px-6 py-4 mo:px-8">
+    <span className="flex flex-row items-start gap-4 px-6 pb-4 pt-4 mo:px-8 mo:pt-8">
       <span className="w-full text-balance font-display text-2xl font-bold">
         {locationName}
       </span>
