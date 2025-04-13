@@ -1,12 +1,10 @@
-import { useState, useEffect } from "react";
-import { Database } from "../live/database.types";
 import { fetchRecentLocations } from "./fetchRecentLocations";
 import { ArticleLocationEntry } from "@/app/nyc/ArticleLocationEntry";
 
 const Tutorial = async () => {
   const locations = await fetchRecentLocations();
   return (
-    <div className="box-border flex w-full flex-col items-start gap-2 p-4 font-display">
+    <div className="box-border flex w-full flex-col items-start gap-2 p-4 font-display mo:p-8">
       <p className="text-2xl font-bold">
         select a location on the map to get started...
       </p>
