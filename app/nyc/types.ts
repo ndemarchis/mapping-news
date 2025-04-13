@@ -19,6 +19,7 @@ export type Properties = {
   articleAuthor: string | null;
   feedName: string | null;
   locations: string | null;
+  place_id: string | null;
 };
 
 export type NullableLocation = {

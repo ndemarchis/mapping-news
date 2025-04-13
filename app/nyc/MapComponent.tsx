@@ -2,7 +2,7 @@
 
 import { ModifiedFeatureCollection } from "@/app/nyc/types";
 import { LoadingDots } from "@/components/shared/icons";
-import { Listener, Map, NavigationControl } from "maplibre-gl";
+import { Listener, LngLatLike, Map, NavigationControl } from "maplibre-gl";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -21,7 +21,7 @@ const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
   const router = useRouter();
 
   const pathname = usePathname();
-  const placeId = pathname.split("/").pop();
+  const placeId = pathname.match(/\/nyc\/([^/]+)/)?.[1];
 
   const handleFeatureClick = (placeId: string, title: string) => {
     const href = getPlaceIdRelativeHref(placeId);
@@ -44,7 +44,7 @@ const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
     const feature = e.features?.[0];
     if (feature) {
       const zoom = mapRef?.current?.getZoom() || 0;
-      if (zoom > 13.5) {
+      if (zoom > 12.9) {
         const href = getPlaceIdRelativeHref(feature.properties.place_id);
         router.prefetch(href);
       }
@@ -158,12 +158,20 @@ const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
         filter: ["==", "place_id", placeId],
       })?.[0];
 
-      const zoom = mapRef?.current?.getZoom() || 0;
-      mapRef.current.flyTo({
-        // @ts-expect-error
-        center: selectedFeature?.geometry?.coordinates,
-        zoom: Math.max(zoom, 11.5),
-      });
+      const zoom = Math.max(mapRef?.current?.getZoom() || 0, 11.5);
+      // @ts-expect-error
+      let center = selectedFeature?.geometry?.coordinates;
+
+      if (!center && placeId) {
+        const feature = geoJson.features.find(
+          (f) => f.properties.place_id === placeId,
+        );
+        center = feature?.geometry?.coordinates as LngLatLike | undefined;
+      }
+
+      if (center) {
+        mapRef.current.flyTo({ center, zoom });
+      }
     }
   }, [placeId, mapRef.current, mapLoading]);
 
