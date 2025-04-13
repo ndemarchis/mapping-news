@@ -1,34 +1,25 @@
-"use server";
+'use server';
 
 import { createClient, PostgrestError } from "@supabase/supabase-js";
 import { Database } from "@/app/nyc/live/database.types";
 
 import { ModifiedFeatureCollection, NullableLocation } from "@/app/nyc/types";
-import {
-  isPartiallyNullablePoint,
-  getDotColor,
-  getDotSizeFactor,
-} from "@/app/nyc/live/locations/utils";
-import { createCache } from "./utils";
+import { isPartiallyNullablePoint, getDotColor, getDotSizeFactor } from "@/app/nyc/live/locations/utils";
 
 const getDataRecursiveCurry =
-  (supabase: ReturnType<typeof createClient<Database>>) =>
+ (supabase: ReturnType<typeof createClient<Database>>) =>
   async (
     start = 0,
   ): Promise<{
     data: NullableLocation[] | null;
     error: PostgrestError | null;
   }> => {
-    const getLocationStats = createCache(
-      async () =>
-        await supabase.rpc("get_location_stats").range(start, start + 1000),
-      { key: `location_stats_${start}`, revalidate: 60 * 15 },
-    );
-    const returned = await getLocationStats();
+    const returned = await supabase
+      .rpc("get_location_stats")
+      .range(start, start + 1000);
 
-    // TODO: do something with returned.lastUpdated
-    const data = returned.payload.data || [];
-    const error = returned.payload.error;
+    const data = returned.data || [];
+    const error = returned.error;
 
     if (error) {
       return { data: null, error };
