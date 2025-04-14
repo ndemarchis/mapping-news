@@ -2,10 +2,10 @@
 mapping.news is a project designed to explore geospatial information in local journalism.
 
 # installation
-we use `npm` for JS package version management and Poetry for the same in Python.
+we use `bun` for JS package version management and Poetry for the same in Python.
 
 ```bash
-npm i
+bun install
 ```
 
 ```bash
@@ -39,7 +39,7 @@ poetry run python actions/validateCache.py --reconcile
 and to start the frontend server
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 # wuh-huh? why?
