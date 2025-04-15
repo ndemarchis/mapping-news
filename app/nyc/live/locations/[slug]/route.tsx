@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { Database } from "../../database.types";
-
-export const revalidate = 900; // 15 minutes
+import { createSWRCache } from "@/app/nyc/utils";
+import { REVALIDATE } from "@/app/constants";
 
 export async function GET(
   request: Request,
@@ -14,10 +14,18 @@ export async function GET(
     process.env.SUPABASE_API_KEY || "",
   );
 
-  const { data, error } = await supabase
-    .from("location_article_relations")
-    .select(`*`)
-    .eq("article_uuid", slug);
+  const getLocationArticleRelations = createSWRCache(
+    async () =>
+      await supabase
+        .from("location_article_relations")
+        .select(`*`)
+        .eq("article_uuid", slug),
+    {
+      key: `location_article_relations_${slug}`,
+      revalidate: REVALIDATE,
+    },
+  );
+  const { data, error } = (await getLocationArticleRelations()).payload;
 
   if (error) {
     console.error(error);

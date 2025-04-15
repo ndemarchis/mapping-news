@@ -58,7 +58,9 @@ const ArticleEntry = ({ article }: { article: ArticleDefinition }) => {
             className="hover flex flex-row items-center gap-2 text-xs text-gray-500 transition-all hover:text-gray-800 hover:underline"
             disabled={isLocationsLoading}
           >
-            <span>See other locations this article mentioned</span>
+            <span className="text-left">
+              See other locations this article mentioned
+            </span>
             {isLocationsLoading ? (
               <LoadingDots aria-label="Locations loading..." />
             ) : (
