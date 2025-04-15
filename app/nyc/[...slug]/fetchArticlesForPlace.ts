@@ -34,8 +34,14 @@ export const fetchArticlesForPlace = async ({
         p_offset: loadAll ? undefined : 0,
       });
     },
-    [placeId],
-    { revalidate: 60 * 10 },
+    ["get_sorted_location_article_relations", placeId],
+    {
+      tags: [
+        "get_sorted_location_article_relations",
+        `get_sorted_location_article_relations:${placeId}`,
+      ],
+      revalidate: 60 * 10,
+    },
   );
 
   const returned = (await getSortedLocationArticleRelations(

@@ -1,4 +1,4 @@
-'use server';
+"use server";
 
 import { Database } from "@/app/nyc/live/database.types";
 import { createClient } from "@supabase/supabase-js";
@@ -15,7 +15,7 @@ export async function fetchRecentLocations() {
       return supabase.rpc("get_location_stats_recent").range(0, 8);
     },
     ["get_location_stats_recent"],
-    { revalidate: 60 * 10 },
+    { tags: ["get_location_stats_recent"], revalidate: 60 * 10 },
   );
   const { data, error } = await getLocationStatsRecent();
 

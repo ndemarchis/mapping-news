@@ -19,8 +19,14 @@ export async function GET(
         .from("location_article_relations")
         .select(`*`)
         .eq("article_uuid", slug),
-    ["location_article_relations"],
-    { revalidate: 60 * 10 },
+    ["location_article_relations", slug],
+    {
+      tags: [
+        "location_article_relations",
+        `location_article_relations:${slug}`,
+      ],
+      revalidate: 60 * 10,
+    },
   );
 
   const { data, error } = await getLocationArticleRelations(slug);
