@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { Database } from "../../database.types";
-import { createSWRCache } from "@/app/nyc/utils";
+import { createCache } from "@/app/nyc/utils";
 import { REVALIDATE } from "@/app/constants";
 
 export async function GET(
@@ -14,14 +14,15 @@ export async function GET(
     process.env.SUPABASE_API_KEY || "",
   );
 
-  const getLocationArticleRelations = createSWRCache(
+  const getLocationArticleRelations = createCache(
     async () =>
       await supabase
         .from("location_article_relations")
         .select(`*`)
         .eq("article_uuid", slug),
     {
-      key: `location_article_relations_${slug}`,
+      key: `r_${slug}`,
+      tag: `location_article_relations`,
       revalidate: REVALIDATE,
     },
   );

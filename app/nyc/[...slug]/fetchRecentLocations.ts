@@ -1,8 +1,8 @@
-'use server';
+"use server";
 
 import { Database } from "@/app/nyc/live/database.types";
 import { createClient } from "@supabase/supabase-js";
-import { createSWRCache } from "../utils";
+import { createCache } from "../utils";
 import { REVALIDATE } from "@/app/constants";
 
 export async function fetchRecentLocations() {
@@ -11,9 +11,13 @@ export async function fetchRecentLocations() {
     process.env.SUPABASE_API_KEY || "",
   );
 
-  const getLocationStatsRecent = createSWRCache(
+  const getLocationStatsRecent = createCache(
     async () => await supabase.rpc("get_location_stats_recent").range(0, 8),
-    { key: `get_location_stats_recent`, revalidate: REVALIDATE },
+    {
+      key: "get_location_stats_recent",
+      tag: `get_location_stats_recent`,
+      revalidate: REVALIDATE,
+    },
   );
   const { data, error } = (await getLocationStatsRecent()).payload;
 

@@ -2,7 +2,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { PostgrestSingleResponse } from "@supabase/postgrest-js";
 import { Database } from "@/app/nyc/live/database.types";
-import { createSWRCache } from "../utils";
+import { createCache } from "../utils";
 import { REVALIDATE } from "@/app/constants";
 type Article = Database["public"]["Tables"]["articles"]["Row"] & {
   location_name: string;
@@ -26,7 +26,7 @@ export const fetchArticlesForPlace = async ({
     process.env.SUPABASE_API_KEY || "",
   );
 
-  const getSortedLocationArticleRelations = createSWRCache(
+  const getSortedLocationArticleRelations = createCache(
     async () =>
       await supabase.rpc("get_sorted_location_article_relations", {
         p_place_id: placeId,
@@ -34,7 +34,8 @@ export const fetchArticlesForPlace = async ({
         p_offset: loadAll ? undefined : 0,
       }),
     {
-      key: `get_sorted_location_article_relations_${placeId}`,
+      key: `${placeId}`,
+      tag: "location_article_relations",
       revalidate: REVALIDATE,
     },
   );

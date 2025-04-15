@@ -9,7 +9,7 @@ import {
   getDotColor,
   getDotSizeFactor,
 } from "@/app/nyc/live/locations/utils";
-import { createSWRCache } from "./utils";
+import { createCache } from "./utils";
 import { REVALIDATE } from "../constants";
 
 const getDataRecursiveCurry =
@@ -20,10 +20,10 @@ const getDataRecursiveCurry =
     data: NullableLocation[] | null;
     error: PostgrestError | null;
   }> => {
-    const getLocationStats = createSWRCache(
+    const getLocationStats = createCache(
       async () =>
         await supabase.rpc("get_location_stats").range(start, start + 1000),
-      { key: `location_stats_${start}`, revalidate: REVALIDATE },
+      { key: `l_${start}`, tag: "location_stats", revalidate: REVALIDATE },
     );
     const returned = await getLocationStats();
 
