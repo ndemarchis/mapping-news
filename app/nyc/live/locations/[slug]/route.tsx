@@ -1,7 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { Database } from "../../database.types";
-
-export const revalidate = 900; // 15 minutes
+import { unstable_cache } from "next/cache";
 
 export async function GET(
   request: Request,
@@ -14,10 +13,17 @@ export async function GET(
     process.env.SUPABASE_API_KEY || "",
   );
 
-  const { data, error } = await supabase
-    .from("location_article_relations")
-    .select(`*`)
-    .eq("article_uuid", slug);
+  const getLocationArticleRelations = unstable_cache(
+    async (slug: string) =>
+      supabase
+        .from("location_article_relations")
+        .select(`*`)
+        .eq("article_uuid", slug),
+    ["location_article_relations"],
+    { revalidate: 30 },
+  );
+
+  const { data, error } = await getLocationArticleRelations(slug);
 
   if (error) {
     console.error(error);
