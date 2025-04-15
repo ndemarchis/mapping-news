@@ -19,7 +19,7 @@ export default function NavBar() {
             : "bg-white/0"
         } z-30 transition-all`}
       >
-        <div className="mx-5 flex h-16 w-full max-w-screen-xl items-center justify-between">
+        <div className="mx-5 flex h-16 w-full max-w-screen-xl flex-row items-center justify-between">
           <Link
             href="/"
             className="flex flex-row items-center gap-2 font-display text-2xl"
