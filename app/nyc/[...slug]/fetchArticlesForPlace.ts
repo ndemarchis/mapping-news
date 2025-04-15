@@ -35,7 +35,7 @@ export const fetchArticlesForPlace = async ({
       });
     },
     [placeId],
-    { revalidate: 30 },
+    { revalidate: 60 * 10 },
   );
 
   const returned = (await getSortedLocationArticleRelations(

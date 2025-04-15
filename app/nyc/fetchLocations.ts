@@ -52,7 +52,7 @@ export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
   const getDataRecursive = unstable_cache(
     getDataRecursiveCurry(supabase),
     ["get_location_stats"],
-    { revalidate: 30 },
+    { revalidate: 60 * 10 },
   );
   const { data, error } = await getDataRecursive();
 

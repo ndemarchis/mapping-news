@@ -15,7 +15,7 @@ export async function fetchRecentLocations() {
       return supabase.rpc("get_location_stats_recent").range(0, 8);
     },
     ["get_location_stats_recent"],
-    { revalidate: 30 },
+    { revalidate: 60 * 10 },
   );
   const { data, error } = await getLocationStatsRecent();
 

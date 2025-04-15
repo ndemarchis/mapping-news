@@ -20,7 +20,7 @@ export async function GET(
         .select(`*`)
         .eq("article_uuid", slug),
     ["location_article_relations"],
-    { revalidate: 30 },
+    { revalidate: 60 * 10 },
   );
 
   const { data, error } = await getLocationArticleRelations(slug);
