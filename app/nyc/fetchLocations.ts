@@ -5,6 +5,7 @@ import { Database } from "@/app/nyc/live/database.types";
 
 import { ModifiedFeatureCollection, NullableLocation } from "@/app/nyc/types";
 import { isPartiallyNullablePoint, getDotColor, getDotSizeFactor } from "@/app/nyc/live/locations/utils";
+import { unstable_cache } from "next/cache";
 
 const getDataRecursiveCurry =
  (supabase: ReturnType<typeof createClient<Database>>) =>
@@ -48,7 +49,11 @@ export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
     process.env.SUPABASE_API_KEY || "",
   );
 
-  const getDataRecursive = getDataRecursiveCurry(supabase);
+  const getDataRecursive = unstable_cache(
+    getDataRecursiveCurry(supabase),
+    ["get_location_stats"],
+    { revalidate: 30 },
+  );
   const { data, error } = await getDataRecursive();
 
   if (!data) {
