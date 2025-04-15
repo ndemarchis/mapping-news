@@ -32,8 +32,7 @@ export const fetchArticlesForPlace = async ({
           p_place_id: placeId,
           p_limit: loadAll ? undefined : DEFAULT_PAGE_SIZE,
           p_offset: loadAll ? undefined : 0,
-        })
-        .single(),
+        }),
     [placeId],
     { revalidate: 30 },
   );
