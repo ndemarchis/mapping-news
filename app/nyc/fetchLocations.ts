@@ -78,7 +78,7 @@ export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
     features: filteredData.map((location) => {
       const pubDate = new Date(location.pub_date || "2022-01-01");
       const dotExpansion = getDotSizeFactor(location.count || 0);
-      const dotColor = getDotColor({ mostRecent, pubDate });
+      const dotColor = getDotColor({ today: mostRecent, pubDate });
       return {
         type: "Feature" as const,
         geometry: {
