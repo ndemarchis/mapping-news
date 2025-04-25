@@ -1,18 +1,14 @@
-"use server";
+'use server';
 
 import { createClient, PostgrestError } from "@supabase/supabase-js";
 import { Database } from "@/app/nyc/live/database.types";
 
 import { ModifiedFeatureCollection, NullableLocation } from "@/app/nyc/types";
-import {
-  isPartiallyNullablePoint,
-  getDotColor,
-  getDotSizeFactor,
-} from "@/app/nyc/live/locations/utils";
+import { isPartiallyNullablePoint, getDotColor, getDotSizeFactor } from "@/app/nyc/live/locations/utils";
 import { unstable_cache } from "next/cache";
 
 const getDataRecursiveCurry =
-  (supabase: ReturnType<typeof createClient<Database>>) =>
+ (supabase: ReturnType<typeof createClient<Database>>) =>
   async (
     start = 0,
   ): Promise<{
@@ -56,7 +52,7 @@ export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
   const getDataRecursive = unstable_cache(
     async () => getDataRecursiveCurry(supabase)(),
     ["get_location_stats"],
-    { tags: ["get_location_stats"], revalidate: 60 * 10 },
+    { revalidate: 60 * 10 },
   );
   const { data, error } = await getDataRecursive();
 
@@ -72,7 +68,7 @@ export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
     throw new Error(error.message);
   }
 
-  const today = new Date();
+  const mostRecent = new Date(data.map(location => location.pub_date).sort().pop());
   const filteredData = data.filter(isPartiallyNullablePoint);
 
   console.log(`returning GeoJSON for ${filteredData.length} locations`);
@@ -82,7 +78,7 @@ export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
     features: filteredData.map((location) => {
       const pubDate = new Date(location.pub_date || "2022-01-01");
       const dotExpansion = getDotSizeFactor(location.count || 0);
-      const dotColor = getDotColor({ today, pubDate });
+      const dotColor = getDotColor({ mostRecent, pubDate });
       return {
         type: "Feature" as const,
         geometry: {
