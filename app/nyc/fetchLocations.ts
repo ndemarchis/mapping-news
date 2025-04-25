@@ -52,7 +52,7 @@ export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
   const getDataRecursive = unstable_cache(
     async () => getDataRecursiveCurry(supabase)(),
     ["get_location_stats"],
-    { revalidate: 60 * 10 },
+    { tags: ["get_location_stats"], revalidate: 60 * 10 },
   );
   const { data, error } = await getDataRecursive();
 
@@ -68,7 +68,7 @@ export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
     throw new Error(error.message);
   }
 
-  const mostRecent = new Date(data.map(location => location.pub_date).sort().pop());
+  const mostRecent = new Date(data.map(location => location.pub_date).sort().pop() as string);
   const filteredData = data.filter(isPartiallyNullablePoint);
 
   console.log(`returning GeoJSON for ${filteredData.length} locations`);
