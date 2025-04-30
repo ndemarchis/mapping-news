@@ -1,14 +1,17 @@
-'use server';
+"use server";
 
 import { createClient, PostgrestError } from "@supabase/supabase-js";
 import { Database } from "@/app/nyc/live/database.types";
 
 import { ModifiedFeatureCollection, NullableLocation } from "@/app/nyc/types";
-import { isPartiallyNullablePoint, getDotColor, getDotSizeFactor } from "@/app/nyc/live/locations/utils";
-import { unstable_cache } from "next/cache";
+import {
+  isPartiallyNullablePoint,
+  getDotColor,
+  getDotSizeFactor,
+} from "@/app/nyc/live/locations/utils";
 
 const getDataRecursiveCurry =
- (supabase: ReturnType<typeof createClient<Database>>) =>
+  (supabase: ReturnType<typeof createClient<Database>>) =>
   async (
     start = 0,
   ): Promise<{
@@ -49,12 +52,7 @@ export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
     process.env.SUPABASE_API_KEY || "",
   );
 
-  const getDataRecursive = unstable_cache(
-    async () => getDataRecursiveCurry(supabase)(),
-    ["get_location_stats"],
-    { tags: ["get_location_stats"], revalidate: 60 * 10 },
-  );
-  const { data, error } = await getDataRecursive();
+  const { data, error } = await getDataRecursiveCurry(supabase)();
 
   if (!data) {
     return {
