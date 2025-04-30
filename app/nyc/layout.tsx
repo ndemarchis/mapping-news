@@ -4,6 +4,8 @@ import { fetchLocations } from "./fetchLocations";
 import MapComponent from "./MapComponent";
 import { Suspense } from "react";
 
+export const revalidate = 600;
+
 const PlaceLayout = async ({ children }: { children: React.ReactNode }) => {
   const geoJson = await fetchLocations();
 

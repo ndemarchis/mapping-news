@@ -1,6 +1,8 @@
 import { fetchRecentLocations } from "./fetchRecentLocations";
 import { ArticleLocationEntry } from "@/app/nyc/ArticleLocationEntry";
 
+export const revalidate = 600;
+
 const Tutorial = async () => {
   const locations = await fetchRecentLocations();
   return (

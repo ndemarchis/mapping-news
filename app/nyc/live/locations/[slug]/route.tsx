@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { Database } from "../../database.types";
 
+export const revalidate = 600;
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ slug: string }> },

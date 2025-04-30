@@ -1,5 +1,16 @@
 import { fetchArticlesForPlace } from "./fetchArticlesForPlace";
 import ArticlesWrapper from "./ArticlesWrapper";
+import { fetchRecentLocations } from "./fetchRecentLocations";
+
+export const revalidate = 600;
+
+export async function generateStaticParams() {
+  const data = await fetchRecentLocations();
+
+  return data?.map(({ place_id }) => ({
+    slug: [place_id, ""],
+  }));
+}
 
 const PlaceLayout = async ({
   children,
