@@ -226,8 +226,8 @@ const About = () => (
     <ul className="list-disc pl-4 [&>li]:pb-2">
       <li>
         A. Khanom, D. Kiesow, M. Zdun, and C.-R. Shyu, “The News Crawler: A Big
-        Data Approach to Local Information Ecosystems,” MaC, vol. 11, no. 3,
-        Aug. 2023, doi:{" "}
+        Data Approach to Local Information Ecosystems,”{" "}
+        <span className="italic">MaC</span>, vol. 11, no. 3, Aug. 2023, doi:{" "}
         <Link href="https://doi.org/10.17645/mac.v11i3.6789">
           10.17645/mac.v11i3.6789
         </Link>
@@ -244,9 +244,12 @@ const About = () => (
       </li>
       <li>
         G. Ariyarathne and A. C. Nwala, “3DLNews: A Three-decade Dataset of US
-        Local News Articles,” in Proceedings of the 33rd ACM International
-        Conference on Information and Knowledge Management, Boise ID USA: ACM,
-        Oct. 2024, pp. 5328–5332. doi:{" "}
+        Local News Articles,” in{" "}
+        <span className="italic">
+          Proceedings of the 33rd ACM International Conference on Information
+          and Knowledge Management
+        </span>
+        , Boise ID USA: ACM, Oct. 2024, pp. 5328–5332. doi:{" "}
         <Link href="https://doi.org/10.1145/3627673.3679165">
           10.1145/3627673.3679165
         </Link>
@@ -255,7 +258,8 @@ const About = () => (
       <li>
         S. Stonbely, “What Makes for Robust Local News Provision? Structural
         Correlates of Local News Coverage for an Entire U.S. State, and Mapping
-        Local News Using a New Method,” Journalism and Media, vol. 4, no. 2, pp.
+        Local News Using a New Method,”{" "}
+        <span className="italic">Journalism and Media</span>, vol. 4, no. 2, pp.
         485–505, Apr. 2023, doi:{" "}
         <Link href="https://doi.org/10.3390/journalmedia4020031">
           10.3390/journalmedia4020031
@@ -264,8 +268,9 @@ const About = () => (
       </li>
       <li>
         T. Neff, P. Popiel, and V. Pickard, “Philadelphia’s news media system:
-        which audiences are underserved?,” Journal of Communication, vol. 72,
-        no. 4, pp. 476–487, Aug. 2022, doi:{" "}
+        which audiences are underserved?,”{" "}
+        <span className="italic">Journal of Communication</span>, vol. 72, no.
+        4, pp. 476–487, Aug. 2022, doi:{" "}
         <Link href="https://doi.org/10.1093/joc/jqac018">
           10.1093/joc/jqac018
         </Link>
