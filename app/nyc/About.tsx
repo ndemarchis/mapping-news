@@ -225,27 +225,58 @@ const About = () => (
     <h2 id="further-reading">further reading</h2>
     <ul className="list-disc pl-4 [&>li]:pb-2">
       <li>
-        Z. Metzger, “The State of Local News,” Local News Initiative. Accessed:
-        Dec. 31, 2024. [Online]. Available:{" "}
-        <Link href="https://localnewsinitiative.northwestern.edu/projects/state-of-local-news/2024/report/">
-          localnewsinitiative.northwestern.edu
+        A. Khanom, D. Kiesow, M. Zdun, and C.-R. Shyu, “The News Crawler: A Big
+        Data Approach to Local Information Ecosystems,” MaC, vol. 11, no. 3,
+        Aug. 2023, doi:{" "}
+        <Link href="https://doi.org/10.17645/mac.v11i3.6789">
+          10.17645/mac.v11i3.6789
         </Link>
+        .
+      </li>
+      <li>
+        D. S. Shah, S. He, G. K. Siddiqi, and R. Bansal, “What’s happening in
+        your neighborhood? A Weakly Supervised Approach to Detect Local News,”
+        Jun. 05, 2024, arXiv: arXiv:2301.08146. doi:{" "}
+        <Link href="https://doi.org/10.48550/arXiv.2301.08146">
+          10.48550/arXiv.2301.08146
+        </Link>
+        .
       </li>
       <li>
         G. Ariyarathne and A. C. Nwala, “3DLNews: A Three-decade Dataset of US
-        Local News Articles,” in
-        <span className="italic">
-          Proceedings of the 33rd ACM International Conference on Information
-          and Knowledge Management (CIKM ’24)
-        </span>
-        , New York, NY, USA: ACM, 2024, pp. 1–5. doi:{" "}
+        Local News Articles,” in Proceedings of the 33rd ACM International
+        Conference on Information and Knowledge Management, Boise ID USA: ACM,
+        Oct. 2024, pp. 5328–5332. doi:{" "}
         <Link href="https://doi.org/10.1145/3627673.3679165">
           10.1145/3627673.3679165
         </Link>
         .
       </li>
       <li>
-        <Link href="https://www.mediacloud.org/">Media Cloud</Link>
+        S. Stonbely, “What Makes for Robust Local News Provision? Structural
+        Correlates of Local News Coverage for an Entire U.S. State, and Mapping
+        Local News Using a New Method,” Journalism and Media, vol. 4, no. 2, pp.
+        485–505, Apr. 2023, doi:{" "}
+        <Link href="https://doi.org/10.3390/journalmedia4020031">
+          10.3390/journalmedia4020031
+        </Link>
+        .
+      </li>
+      <li>
+        T. Neff, P. Popiel, and V. Pickard, “Philadelphia’s news media system:
+        which audiences are underserved?,” Journal of Communication, vol. 72,
+        no. 4, pp. 476–487, Aug. 2022, doi:{" "}
+        <Link href="https://doi.org/10.1093/joc/jqac018">
+          10.1093/joc/jqac018
+        </Link>
+        .
+      </li>
+      <li>
+        Z. Metzger, “The State of Local News,” Local News Initiative. Accessed:
+        Jun. 09, 2025. [Online]. Available:{" "}
+        <Link href="https://localnewsinitiative.northwestern.edu/projects/state-of-local-news/2024/report/">
+          localnewsinitiative.northwestern.edu
+        </Link>
       </li>
     </ul>
   </div>
