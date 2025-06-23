@@ -256,6 +256,16 @@ const About = () => (
         .
       </li>
       <li>
+        M. A. Le Quéré, S. Wang, T. Fatima, and M. Krisch, “Towards Identifying 
+        Local Content Deserts with Open-Source Large Language Models,” in {" "}
+        <span className="italic">
+          Proceedings of the Computation + Journalism Symposium 2024
+        </span>, Boston, MA, Oct. 2024. Available:{" "}
+        <Link href="https://cplusj2024.github.io/papers/CJ_2024_paper_25.pdf">
+          cplusj2024.github.io
+        </Link>
+      </li>
+      <li>
         S. Stonbely, “What Makes for Robust Local News Provision? Structural
         Correlates of Local News Coverage for an Entire U.S. State, and Mapping
         Local News Using a New Method,”{" "}
