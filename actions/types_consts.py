@@ -73,8 +73,18 @@ class CustomFeedItem(TypedDict):
     item: FeedItem
     locations: GeocodedLocations
 
-class AddressArray(BaseModel):
-    locations: List[str]
+
+
+class LLMConstrainedAddress(TypedDict):
+    poi_name: Optional[str]
+    street_address: Optional[str]
+    city: Optional[str]
+    state: Optional[str]
+    postal_code: Optional[str]
+    country: Optional[str]
+
+class LLMConstrainedOutput(BaseModel):
+    locations: List[LLMConstrainedAddress]
 
 class GeocodingResultDefinition(TypedDict):
     articles: List[CustomFeedItem]

@@ -15,7 +15,9 @@ from supabase import create_client, Client
 import hashlib
 
 from CacheManager import CacheManager
-from types_consts import FEED_FILE, FILTERABLE_LOCATION_TYPES, Hash, PlaceId, Feed, FeedItem, CustomFeedItem, AddressArray, LocationsDefinition, OptionalGeoBoundaries, GeocodingResultDefinition, GeocodedLocations,ArticlesDefinition, LocationArticleRelationsDefinition
+from types_consts import FEED_FILE, FILTERABLE_LOCATION_TYPES, Hash, PlaceId, Feed, FeedItem, CustomFeedItem, LLMConstrainedOutput, LLMConstrainedAddress, LocationsDefinition, OptionalGeoBoundaries, GeocodingResultDefinition, GeocodedLocations,ArticlesDefinition, LocationArticleRelationsDefinition
+
+SYSTEM_PROMPT = "Your goal is to extract all points of interest and street addresses from the text provided. For each location, provide all the information that is provided in the text for that specific location, and leave the rest blank. If the block of text discusses no discrete physical locations, return an empty list."
 
 # Flag to control whether to write to the database
 WRITE_TO_DB = True
@@ -199,10 +201,6 @@ def add_article_locations(articles: List[FeedItem]) -> List[CustomFeedItem]:
     """For each article, extract location information."""
     return [add_article_location(article) for article in articles]
 
-def filter_parsed_locations(locations: List[str]) -> List[str]:
-    """Remove API-parsed locations with fewer than 3 words."""
-    return [location for location in locations if len(location.split()) >= 2]
-
 def add_article_location(article: FeedItem) -> CustomFeedItem:
     key = os.getenv("OPENAI_API_KEY")
     client = OpenAI(api_key=key)
@@ -212,19 +210,22 @@ def add_article_location(article: FeedItem) -> CustomFeedItem:
     completion = client.beta.chat.completions.parse(
         model="gpt-4o-mini-2024-07-18",
         messages=[
-            {"role": "system", "content": "Your goal is to extract all points of interest and street addresses from the text provided."},
+            {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": article.get("content") or ""},
         ],
-        response_format=AddressArray,
+        response_format=LLMConstrainedOutput,
     )
 
-    event = completion.choices[0].message.parsed
-    filtered_locations = filter_parsed_locations(event.locations if event else [])
-    print(f"    (Locations: {filtered_locations})")
+    parsed_message = completion.choices[0].message.parsed
+    if not parsed_message or not getattr(parsed_message, "locations"):
+        locations = []
+    else:
+        locations = [", ".join(f"{v}" for _, v in d.items() if v) for d in parsed_message.locations]
+    print(f"    (Locations: {locations})")
 
     return {
         "item": article,
-        "locations": dict.fromkeys(filtered_locations, None),
+        "locations": dict.fromkeys(locations, None),
     }
 
 def filter_new_geocoded_full_locations(new_geocoded_full_locations: List[LocationsDefinition]) -> List[LocationsDefinition]:
