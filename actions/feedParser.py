@@ -132,7 +132,8 @@ async def fetch_new_articles() -> List[FeedItem]:
     cache_mgr = CacheManager()
     seen_articles: List[Hash] = cache_mgr.load_seen_articles()
     new_articles: List[FeedItem] = []
-    seen_headlines: Set[str] = set()  # Track seen headlines to filter duplicates
+    seen_headlines: Set[str] = set()  
+    seen_links: Set[str] = set()  
 
     feeds = load_feeds()
 
@@ -147,9 +148,10 @@ async def fetch_new_articles() -> List[FeedItem]:
         for article in articles:
             hashed_id = hash(article.get("id"))
             headline = article.get("title")
-            if not hashed_id or articles_count >= TEMP_ARTICLES_LIMIT or headline is None:
+            link = article.get("link")
+            if not hashed_id or articles_count >= TEMP_ARTICLES_LIMIT or headline is None or link is None:
                 continue
-            if hashed_id in seen_articles or headline in seen_headlines:
+            if hashed_id in seen_articles or headline in seen_headlines or link in seen_links:
                 # Skip articles with duplicate IDs or headlines
                 continue
 
@@ -158,6 +160,7 @@ async def fetch_new_articles() -> List[FeedItem]:
             new_articles.append(article)
             seen_articles.append(hashed_id)
             seen_headlines.add(headline)
+            seen_links.add(link)
 
     # No need to save here as we'll update at the end of the workflow
     return new_articles
