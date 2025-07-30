@@ -15,9 +15,9 @@ from supabase import create_client, Client
 import hashlib
 
 from CacheManager import CacheManager
-from types_consts import FEED_FILE, FILTERABLE_LOCATION_TYPES, Hash, PlaceId, Feed, FeedItem, CustomFeedItem, LLMConstrainedOutput, LLMConstrainedAddress, LocationsDefinition, OptionalGeoBoundaries, GeocodingResultDefinition, GeocodedLocations,ArticlesDefinition, LocationArticleRelationsDefinition
+from types_consts import FEED_FILE, FILTERABLE_LOCATION_TYPES, Hash, PlaceId, Feed, FeedItem, CustomFeedItem, LLMConstrainedOutput, LocationsDefinition, OptionalGeoBoundaries, GeocodingResultDefinition, GeocodedLocations,ArticlesDefinition, LocationArticleRelationsDefinition
 
-SYSTEM_PROMPT = "Your goal is to extract all points of interest and street addresses from the text provided. For each location, provide all the information that is provided in the text for that specific location, and leave the rest blank. If the block of text discusses no discrete physical locations, return an empty list."
+SYSTEM_PROMPT = "Your goal is to extract all points of interest and street addresses from the text provided. For each location, provide all the information that is provided in the text for that specific location. Do NOT included any information that is not included associated with that location; for instance, if a street address is listed without some point of interest name that's separate from the address, only include the relevant address info and leave the point of interest info blank. If the text includes a physical point of interest name with no information about its specific street address, include its name anyways and leave the address fields blank. If the block of text discusses no discrete physical locations, return an empty list."
 
 # Flag to control whether to write to the database
 WRITE_TO_DB = True

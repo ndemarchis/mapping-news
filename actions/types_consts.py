@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, TypedDict, Optional, Dict
+from typing import List, TypedDict, Optional, Dict, Union
 from pydantic import BaseModel
 
 
@@ -75,16 +75,21 @@ class CustomFeedItem(TypedDict):
 
 
 
-class LLMConstrainedAddress(TypedDict):
-    poi_name: Optional[str]
+class LLMConstrainedPOI(TypedDict):
+    poi_name: str
     street_address: Optional[str]
     city: Optional[str]
     state: Optional[str]
     postal_code: Optional[str]
-    country: Optional[str]
+
+class LLMConstrainedAddress(TypedDict):
+    street_address: str
+    city: Optional[str]
+    state: Optional[str]
+    postal_code: Optional[str]
 
 class LLMConstrainedOutput(BaseModel):
-    locations: List[LLMConstrainedAddress]
+    locations: List[Union[LLMConstrainedAddress, LLMConstrainedPOI]]
 
 class GeocodingResultDefinition(TypedDict):
     articles: List[CustomFeedItem]
