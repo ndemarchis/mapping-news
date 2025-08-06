@@ -18,9 +18,9 @@ export const CursorAnimation = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       const newDot = {
-        x: mouse.x + Math.random() * 80 - 40,
-        y: mouse.y + Math.random() * 80 - 40,
-        size: Math.random() * 20 + 5,
+        x: mouse.x + Math.random() * 140 - 70,
+        y: mouse.y + Math.random() * 140 - 70,
+        size: Math.random() * 30 + 5,
         color: getColorFromPercentage({
           percentage: Math.random(),
           minHue: 195,
@@ -28,7 +28,7 @@ export const CursorAnimation = () => {
         }),
       };
       setDots((prev) => [newDot, ...prev].slice(0, 50));
-    }, 400);
+    }, 250);
 
     return () => {
       clearInterval(interval);
