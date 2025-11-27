@@ -4,8 +4,7 @@ import { ArticleLocationEntry } from "@/app/nyc/ArticleLocationEntry";
 export const revalidate = 600;
 
 const Tutorial = async () => {
-  // const locations = await fetchRecentLocations();
-  const locations = [];
+  const locations = await fetchRecentLocations();
   return (
     <div className="box-border flex w-full flex-col items-start gap-2 p-4 font-display mo:p-8">
       <p className="text-2xl font-bold">
