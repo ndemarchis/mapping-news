@@ -1,4 +1,5 @@
 import Link from "@/components/shared/link";
+import { ArrowRight } from "lucide-react";
 
 const About = () => (
   <div className="items-left z-10 m-auto flex min-h-screen w-full flex-col justify-start gap-4 p-4 *:z-10 md:max-w-xl">
@@ -19,6 +20,17 @@ const About = () => (
       <Link href="http://localhost:3000/about">the about page</Link>.
     </p>
     <h2 id="why">why</h2>
+    <Link
+      className="group grid grid-cols-[1fr_auto] items-center gap-3 text-balance rounded-lg border-2 border-gray-500 p-4 text-gray-500 transition-all hover:border-gray-800 hover:text-gray-800 md:gap-8"
+      href="/presentations/ompsi-2025.pdf"
+    >
+      if you&apos;re into presentations, you can check out the one i gave in
+      August 2025 at the Oxford Media Policy Summer Institute. or, read on...
+      <ArrowRight
+        className="inline transition-all group-hover:translate-x-[0.125rem]"
+        size="16px"
+      />
+    </Link>
     <p>
       Local journalism is in crisis.{" "}
       <Link href="https://www.pewresearch.org/journalism/fact-sheet/local-newspapers/">
@@ -256,11 +268,12 @@ const About = () => (
         .
       </li>
       <li>
-        M. A. Le Quéré, S. Wang, T. Fatima, and M. Krisch, “Towards Identifying 
-        Local Content Deserts with Open-Source Large Language Models,” in {" "}
+        M. A. Le Quéré, S. Wang, T. Fatima, and M. Krisch, “Towards Identifying
+        Local Content Deserts with Open-Source Large Language Models,” in{" "}
         <span className="italic">
           Proceedings of the Computation + Journalism Symposium 2024
-        </span>, Boston, MA, Oct. 2024. Available:{" "}
+        </span>
+        , Boston, MA, Oct. 2024. Available:{" "}
         <Link href="https://cplusj2024.github.io/papers/CJ_2024_paper_25.pdf">
           cplusj2024.github.io
         </Link>
