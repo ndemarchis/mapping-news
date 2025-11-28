@@ -24,8 +24,10 @@ const About = () => (
       className="group grid grid-cols-[1fr_auto] items-center gap-3 text-balance rounded-lg border-2 border-gray-500 p-4 text-gray-500 transition-all hover:border-gray-800 hover:text-gray-800 md:gap-8"
       href="/presentations/ompsi-2025.pdf"
     >
-      if you&apos;re into presentations, you can check out the one i gave in
-      August 2025 at the <u>Oxford Media Policy Summer Institute</u>
+      <span>
+        if you&apos;re into presentations, you can check out the one i gave in
+        August 2025 at the <u>Oxford Media Policy Summer Institute</u>
+      </span>
       <ArrowRight
         className="inline transition-all group-hover:translate-x-[0.125rem]"
         size="16px"
