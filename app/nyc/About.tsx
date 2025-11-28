@@ -25,7 +25,7 @@ const About = () => (
       href="/presentations/ompsi-2025.pdf"
     >
       if you&apos;re into presentations, you can check out the one i gave in
-      August 2025 at the Oxford Media Policy Summer Institute. or, read on...
+      August 2025 at the <u>Oxford Media Policy Summer Institute</u>
       <ArrowRight
         className="inline transition-all group-hover:translate-x-[0.125rem]"
         size="16px"
