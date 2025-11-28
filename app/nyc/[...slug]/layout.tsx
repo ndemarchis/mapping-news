@@ -17,7 +17,7 @@ const PlaceLayout = async ({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ slug: [string, ...(string | undefined)[]] }>;
+  params: Promise<{ slug: string[] }>;
 }) => {
   const [placeId, loadAll] = (await params)?.slug;
   const articles = await fetchArticlesForPlace({

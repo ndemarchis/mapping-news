@@ -1,5 +1,7 @@
 import { ArticleDefinition } from "./types";
 
+import type { JSX } from "react";
+
 export const entryModifiers: Partial<{
   [K in keyof ArticleDefinition]: (
     value: ArticleDefinition[K],
