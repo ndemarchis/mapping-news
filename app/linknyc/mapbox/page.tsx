@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { MutableRefObject, useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import Link from "@/components/shared/link";
 
 export default function Mapbox() {
   const mapRef = useRef<mapboxgl.Map | null>(null);
-  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapContainerRef = useRef<HTMLDivElement>();
 
   useEffect(() => {
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -35,7 +35,7 @@ export default function Mapbox() {
       <div
         className="h-full"
         id="map-container"
-        ref={mapContainerRef}
+        ref={mapContainerRef as MutableRefObject<HTMLDivElement>}
       />
     </div>
   );

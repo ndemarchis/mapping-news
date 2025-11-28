@@ -12,9 +12,9 @@ import Stroke from "ol/style/Stroke";
 import Circle from "ol/style/Circle";
 
 export default function Openlayers() {
-  const [map, setMap] = useState<Map | undefined>(undefined);
-  const mapElement = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<Map | undefined>(undefined);
+  const [map, setMap] = useState();
+  const mapElement = useRef<HTMLDivElement>();
+  const mapRef = useRef();
   mapRef.current = map;
 
   const vectorSource = new VectorSource({
@@ -46,8 +46,6 @@ export default function Openlayers() {
   });
 
   useEffect(() => {
-    if (!mapElement.current) return;
-
     const osmLayer = new TileLayer({
       preload: Infinity,
       source: new OSM({ layer: "alidade_smooth", retina: true }),
@@ -68,7 +66,7 @@ export default function Openlayers() {
   return (
     <div className="flex h-full min-h-[calc(100vh-6rem)] w-full flex-col items-center justify-center py-8">
       <div
-        ref={mapElement}
+        ref={mapElement as React.RefObject<HTMLDivElement>}
         className="map-container h-full w-full"
       />
     </div>
