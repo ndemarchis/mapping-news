@@ -13,8 +13,8 @@ import Circle from "ol/style/Circle";
 
 export default function Openlayers() {
   const [map, setMap] = useState();
-  const mapElement = useRef<HTMLDivElement>();
-  const mapRef = useRef();
+  const mapElement = useRef<HTMLDivElement>(undefined);
+  const mapRef = useRef(undefined);
   mapRef.current = map;
 
   const vectorSource = new VectorSource({
@@ -66,7 +66,7 @@ export default function Openlayers() {
   return (
     <div className="flex h-full min-h-[calc(100vh-6rem)] w-full flex-col items-center justify-center py-8">
       <div
-        ref={mapElement as React.RefObject<HTMLDivElement>}
+        ref={mapElement as React.RefObject<HTMLDivElement | null>}
         className="map-container h-full w-full"
       />
     </div>

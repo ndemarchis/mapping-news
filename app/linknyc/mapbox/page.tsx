@@ -6,7 +6,7 @@ import Link from "@/components/shared/link";
 
 export default function Mapbox() {
   const mapRef = useRef<mapboxgl.Map | null>(null);
-  const mapContainerRef = useRef<HTMLDivElement>();
+  const mapContainerRef = useRef<HTMLDivElement>(undefined);
 
   useEffect(() => {
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
