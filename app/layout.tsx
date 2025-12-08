@@ -6,7 +6,6 @@ import Footer from "@/components/layout/footer";
 import { Suspense } from "react";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 import Navbar from "@/components/layout/navbar";
-import { ClerkProvider } from "@clerk/nextjs";
 
 export const metadata: Metadata = {
   title: "mapping.news",
@@ -42,18 +41,16 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className={cx(sfPro.variable, inter.variable)}>
-          <div className="fixed h-full w-full bg-gradient-to-br from-indigo-50 via-white to-cyan-100" />
-          <Suspense fallback="...">
-            <Navbar />
-          </Suspense>
-          <main>{children}</main>
-          <Footer />
-          <VercelAnalytics />
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body className={cx(sfPro.variable, inter.variable)}>
+        <div className="fixed h-full w-full bg-gradient-to-br from-indigo-50 via-white to-cyan-100" />
+        <Suspense fallback="...">
+          <Navbar />
+        </Suspense>
+        <main>{children}</main>
+        <Footer />
+        <VercelAnalytics />
+      </body>
+    </html>
   );
 }

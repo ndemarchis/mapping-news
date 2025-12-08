@@ -3,7 +3,6 @@
 // import Image from "next/image";
 import Link from "next/link";
 import useScroll from "@/lib/hooks/use-scroll";
-// import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 // import { LayoutDashboard } from "lucide-react";
 import MapPinned from "./icons/MapPinned";
 
