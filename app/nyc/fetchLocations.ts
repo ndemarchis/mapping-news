@@ -9,6 +9,7 @@ import {
   getDotColor,
   getDotSizeFactor,
 } from "@/app/nyc/live/locations/utils";
+import { unstable_cache } from "next/cache";
 
 const getDataRecursiveCurry =
   (supabase: ReturnType<typeof createClient<Database>>) =>
@@ -46,7 +47,7 @@ const getDataRecursiveCurry =
     return { data, error };
   };
 
-export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
+async function fetchLocationsUncached(): Promise<ModifiedFeatureCollection> {
   const supabase = createClient<Database>(
     process.env.SUPABASE_URL || "",
     process.env.SUPABASE_API_KEY || "",
@@ -66,7 +67,12 @@ export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
     throw new Error(error.message);
   }
 
-  const mostRecent = new Date(data.map(location => location.pub_date).sort().pop() as string);
+  const mostRecent = new Date(
+    data
+      .map((location) => location.pub_date)
+      .sort()
+      .pop() as string,
+  );
   const filteredData = data.filter(isPartiallyNullablePoint);
 
   console.log(`returning GeoJSON for ${filteredData.length} locations`);
@@ -93,4 +99,16 @@ export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
       };
     }),
   };
+}
+
+const fetchLocationsCached = unstable_cache(
+  async (): Promise<ModifiedFeatureCollection> => {
+    return fetchLocationsUncached();
+  },
+  ["fetchLocations"],
+  { revalidate: 120 },
+);
+
+export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
+  return fetchLocationsCached();
 }
