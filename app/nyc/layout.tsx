@@ -2,7 +2,6 @@ import Tutorial from "./[...slug]/Tutorial";
 import About from "@/app/nyc/About";
 import { fetchLocations } from "./fetchLocations";
 import MapComponent from "./MapComponent";
-import { Suspense } from "react";
 
 export const revalidate = 600;
 
@@ -12,9 +11,7 @@ const PlaceLayout = async ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <div className="grid h-full w-full grid-cols-1 pt-16 mo:grid-cols-[3fr_2fr] mo:pb-8 ">
-        <Suspense fallback={<span>loading MAP...</span>}>
-          <MapComponent geoJson={geoJson} />
-        </Suspense>
+        <MapComponent geoJson={geoJson} />
         <div className="z-10 hidden h-[80vh] w-full max-w-xl overflow-scroll bg-white mo:flex md:h-[calc(100vh-12rem)]">
           {children}
         </div>
