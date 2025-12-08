@@ -6,6 +6,7 @@ import Footer from "@/components/layout/footer";
 import { Suspense } from "react";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 import Navbar from "@/components/layout/navbar";
+import { PostHogProvider } from "./providers";
 
 export const metadata: Metadata = {
   title: "mapping.news",
@@ -43,13 +44,13 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={cx(sfPro.variable, inter.variable)}>
-        <div className="fixed h-full w-full bg-gradient-to-br from-indigo-50 via-white to-cyan-100" />
-        <Suspense fallback="...">
+        <PostHogProvider>
+          <div className="fixed h-full w-full bg-gradient-to-br from-indigo-50 via-white to-cyan-100" />
           <Navbar />
-        </Suspense>
-        <main>{children}</main>
-        <Footer />
-        <VercelAnalytics />
+          <main>{children}</main>
+          <Footer />
+          <VercelAnalytics />
+        </PostHogProvider>
       </body>
     </html>
   );
