@@ -47,7 +47,7 @@ const getDataRecursiveCurry =
     return { data, error };
   };
 
-async function fetchLocationsUncached(): Promise<ModifiedFeatureCollection> {
+export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
   const supabase = createClient<Database>(
     process.env.SUPABASE_URL || "",
     process.env.SUPABASE_API_KEY || "",
@@ -99,16 +99,4 @@ async function fetchLocationsUncached(): Promise<ModifiedFeatureCollection> {
       };
     }),
   };
-}
-
-const fetchLocationsCached = unstable_cache(
-  async (): Promise<ModifiedFeatureCollection> => {
-    return fetchLocationsUncached();
-  },
-  ["fetchLocations"],
-  { revalidate: 120 },
-);
-
-export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
-  return fetchLocationsCached();
 }
