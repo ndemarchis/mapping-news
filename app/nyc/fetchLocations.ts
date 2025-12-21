@@ -9,7 +9,6 @@ import {
   getDotColor,
   getDotSizeFactor,
 } from "@/app/nyc/live/locations/utils";
-import { unstable_cache } from "next/cache";
 
 const getDataRecursiveCurry =
   (supabase: ReturnType<typeof createClient<Database>>) =>
