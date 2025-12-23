@@ -11,24 +11,12 @@ export const entryModifiers: Partial<{
   pub_date: (value, index) => {
     if (!value) return null;
     const date = new Date(value);
-    const thirtySixHoursAgo =
-      new Date().getTime() - date.getTime() < 1000 * 60 * 60 * 36;
     return (
       <span key={index}>
         {date.toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
         })}
-        {thirtySixHoursAgo && (
-          <>
-            {" "}
-            at{" "}
-            {date.toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </>
-        )}
       </span>
     );
   },
