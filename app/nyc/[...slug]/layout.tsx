@@ -8,9 +8,10 @@ const PlaceLayout = async ({
   params,
 }: {
   children: React.ReactNode;
-  params: { slug: string[] };
+  params: Promise<{ slug: string[] }>;
 }) => {
-  const [placeId, loadAll] = params?.slug || [];
+  const { slug } = await params;
+  const [placeId, loadAll] = slug || [];
   const articles = await fetchArticlesForPlace({
     placeId: Array.isArray(placeId) ? placeId[0] : placeId,
     loadAll: loadAll === "full",
