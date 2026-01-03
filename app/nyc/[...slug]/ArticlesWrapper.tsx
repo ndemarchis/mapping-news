@@ -38,7 +38,7 @@ const ArticlesWrapper = ({ articles, placeId }: Props) => {
       );
     } else {
       return (
-        <div className="z-10 flex h-[calc(100vh-12rem)] flex-col overflow-y-scroll bg-white shadow-lg transition-all duration-75">
+        <div className="bg-surface-strong text-primary shadow-elevated z-10 flex h-[calc(100vh-12rem)] flex-col overflow-y-scroll transition-all duration-75">
           {children}
         </div>
       );
@@ -66,7 +66,7 @@ const ArticlesWrapper = ({ articles, placeId }: Props) => {
             <Link
               href={`/nyc/${placeId}/full`}
               sameWindow
-              className="flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 transition-all duration-75 hover:border-gray-800 focus:outline-none active:bg-gray-100"
+              className="border-subtle text-primary hover:border-strong active:bg-surface-muted flex items-center justify-center rounded-md border px-3 py-2 transition-all duration-75 focus:outline-none"
             >
               load more articles
             </Link>
@@ -93,7 +93,7 @@ const ArticlesWrapperNavbar = ({
       </span>
       <span className="flex flex-row items-center gap-2">
         <Link
-          className="text-gray-500 transition-all duration-75 hover:cursor-pointer hover:text-gray-800 active:bg-gray-100"
+          className="text-subtle hover:text-primary active:bg-surface-muted transition-all duration-75 hover:cursor-pointer"
           title="View on Google Maps"
           href={`https://www.google.com/maps/search/?api=1&query=${locationName}&query_place_id=${placeId}`}
         >
@@ -108,11 +108,11 @@ const ArticlesWrapperNavbar = ({
             })
           }
         >
-          <Share className="text-gray-500 transition-all duration-75 hover:cursor-pointer hover:text-gray-800 active:bg-gray-100" />
+          <Share className="text-subtle hover:text-primary active:bg-surface-muted transition-all duration-75 hover:cursor-pointer" />
         </button>
         <Link
           aria-label="Close"
-          className="text-gray-500 transition-all duration-75 hover:cursor-pointer hover:text-gray-800 active:bg-gray-100"
+          className="text-subtle hover:text-primary active:bg-surface-muted transition-all duration-75 hover:cursor-pointer"
           href={getPlaceIdRelativeHref()}
           sameWindow
         >

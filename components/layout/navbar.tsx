@@ -5,6 +5,7 @@ import Link from "next/link";
 import useScroll from "@/lib/hooks/use-scroll";
 // import { LayoutDashboard } from "lucide-react";
 import MapPinned from "./icons/MapPinned";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 
 export default function NavBar() {
   const scrolled = useScroll(0);
@@ -14,11 +15,11 @@ export default function NavBar() {
       <div
         className={`fixed top-0 flex w-full justify-center ${
           scrolled
-            ? "border-b border-gray-200 bg-white/50 backdrop-blur-xl"
-            : "bg-white/0"
-        } z-30 transition-all`}
+            ? "border-subtle bg-surface-veil border-b backdrop-blur-xl"
+            : "bg-transparent"
+        } text-primary z-30 transition-all`}
       >
-        <div className="mx-5 flex h-16 w-full max-w-screen-xl flex-row items-center justify-between">
+        <div className="mx-5 flex h-16 w-full max-w-screen-xl flex-row items-center justify-between gap-4">
           <Link
             href="/"
             className="flex flex-row items-center gap-2 font-display text-2xl"
@@ -26,6 +27,7 @@ export default function NavBar() {
             <MapPinned />
             mapping.news
           </Link>
+          <ThemeToggle />
           {/* <SignedOut>
             <SignInButton mode="modal">
               <button className="rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-colors hover:bg-white hover:text-black">

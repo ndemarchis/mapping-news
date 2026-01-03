@@ -11,9 +11,9 @@ export const ArticleLocationEntry = ({
   locationName?: string | null;
   placeId?: string | null;
 }) => (
-  <li className="text-xs text-gray-500">
+  <li className="text-subtle text-xs">
     <Link
-      className="hover group text-pretty text-left text-gray-500 transition-all duration-75 hover:cursor-pointer hover:text-gray-800 hover:underline active:bg-gray-100"
+      className="hover text-subtle hover:text-primary active:bg-surface-muted group text-pretty text-left transition-all duration-75 hover:cursor-pointer hover:underline"
       href={getPlaceIdRelativeHref(place_id)}
       sameWindow
     >

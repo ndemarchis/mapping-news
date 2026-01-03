@@ -14,7 +14,7 @@ export default function Card({
 }) {
   return (
     <div
-      className={`relative col-span-1 h-96 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md ${
+      className={`border-subtle bg-surface-strong shadow-elevated relative col-span-1 h-96 overflow-hidden rounded-xl border ${
         large ? "md:col-span-2" : ""
       }`}
     >
@@ -23,14 +23,14 @@ export default function Card({
         <h2 className="bg-gradient-to-br from-black to-stone-500 bg-clip-text font-display text-xl font-bold text-transparent [text-wrap:balance] md:text-3xl md:font-normal">
           {title}
         </h2>
-        <div className="prose-sm mt-3 leading-normal text-gray-500 [text-wrap:balance] md:prose">
+        <div className="text-subtle prose-sm mt-3 leading-normal [text-wrap:balance] md:prose">
           <ReactMarkdown
             components={{
               a: ({ node, ...props }) => (
                 <a
                   target="_blank"
                   {...props}
-                  className="font-medium text-gray-800 underline transition-colors"
+                  className="text-primary font-medium underline transition-colors"
                 />
               ),
               code: ({ node, ...props }) => (
@@ -38,7 +38,7 @@ export default function Card({
                   {...props}
                   // @ts-ignore (to fix "Received `true` for a non-boolean attribute `inline`." warning)
                   inline="true"
-                  className="rounded-sm bg-gray-100 px-1 py-0.5 font-mono font-medium text-gray-800"
+                  className="bg-surface-muted text-primary rounded-sm px-1 py-0.5 font-mono font-medium"
                 />
               ),
             }}

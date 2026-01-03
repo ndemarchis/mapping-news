@@ -40,7 +40,7 @@ const ArticleEntry = ({ article }: { article: ArticleDefinition }) => {
       onOpenChange={onOpenChange}
       asChild
     >
-      <div className="flex flex-col gap-1 rounded-md px-4 py-2 transition-all hover:bg-slate-200 hover:has-[.hover:hover]:bg-transparent">
+      <div className="hover:bg-surface-muted flex flex-col gap-1 rounded-md px-4 py-2 transition-all hover:has-[.hover:hover]:bg-transparent">
         <Link className="flex flex-col gap-1" href={article.link as string}>
           <ModifiedEntriesWithDots
             article={article}
@@ -50,12 +50,12 @@ const ArticleEntry = ({ article }: { article: ArticleDefinition }) => {
           <ModifiedEntriesWithDots
             article={article}
             entries={["pub_date", "author", ...conditionalLocationName]}
-            className="text-xs text-gray-500"
+            className="text-subtle text-xs"
           />
         </Link>
         <Collapsible.Trigger asChild>
           <button
-            className="hover flex flex-row items-center gap-2 text-xs text-gray-500 transition-all hover:text-gray-800 hover:underline"
+            className="hover text-subtle hover:text-primary flex flex-row items-center gap-2 text-xs transition-all hover:underline"
             disabled={isLocationsLoading}
           >
             <span>See other locations this article mentioned</span>

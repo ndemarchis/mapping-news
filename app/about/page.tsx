@@ -27,7 +27,7 @@ export default function About() {
       <h2 className="pt-4">contact</h2>
       <p>
         email{" "}
-        <span className="font-semibold text-gray-600 underline-offset-2">
+        <span className="text-primary font-semibold underline-offset-2">
           hi [at] mapping [dot] news
         </span>
         .

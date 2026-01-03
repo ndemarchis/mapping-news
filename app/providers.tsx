@@ -4,8 +4,9 @@ import { useEffect } from "react";
 
 import posthog from "posthog-js";
 import { PostHogProvider as PHProvider } from "posthog-js/react";
+import { ThemeProvider } from "@/components/shared/theme-provider";
 
-export function PostHogProvider({ children }: { children: React.ReactNode }) {
+function PostHogClientProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY as string, {
       api_host:
@@ -16,4 +17,12 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return <PHProvider client={posthog}>{children}</PHProvider>;
+}
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <ThemeProvider>
+      <PostHogClientProvider>{children}</PostHogClientProvider>
+    </ThemeProvider>
+  );
 }

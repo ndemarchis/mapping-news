@@ -13,6 +13,7 @@ const sizeDependentDotStyles = {
   radius: 5,
   strokeWidth: 2,
 };
+const LIGHT_STYLE = "https://tiles.openfreemap.org/styles/positron";
 
 const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
   const mapElement = useRef<HTMLDivElement>(null);
@@ -59,9 +60,10 @@ const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
 
   useEffect(() => {
     if (mapElement.current && !mapRef.current) {
+      setMapLoading(true);
       mapRef.current = new Map({
         container: mapElement.current,
-        style: "https://tiles.openfreemap.org/styles/positron", // Map style URL
+        style: LIGHT_STYLE,
         center: [-73.935242, 40.73061], // Initial map center [lng, lat]
         zoom: 11,
         maxBounds: [
@@ -183,11 +185,11 @@ const MapComponent = ({ geoJson }: { geoJson: ModifiedFeatureCollection }) => {
       <div
         aria-label={mapLoading ? "Loading map data..." : undefined}
         aria-hidden={mapLoading ? "false" : "true"}
-        className={`pointer-events-none absolute z-50 flex h-[calc(100vh-12rem)] w-full max-w-[3fr] items-center justify-center bg-[#f3feff] transition-all ${
+        className={`bg-surface pointer-events-none absolute z-50 flex h-[calc(100vh-12rem)] w-full max-w-[3fr] items-center justify-center transition-all ${
           mapLoading ? "opacity-70" : "opacity-0"
         }`}
       >
-        <LoadingDots />
+        <LoadingDots color="var(--color-accent)" />
       </div>
     </div>
   );

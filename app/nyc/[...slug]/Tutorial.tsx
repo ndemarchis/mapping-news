@@ -16,7 +16,7 @@ const Tutorial = async () => {
       </p>
       <ul className="flex flex-col gap-2 pl-8 align-baseline">
         <li className="-indent-8">
-          <span className="rounded-md bg-gray-200 px-2 py-1 font-bold text-[#9100ff]">
+          <span className="bg-surface-muted rounded-md px-2 py-1 font-bold text-[#9100ff]">
             ●  purple dots
           </span>{" "}
           have more recent articles
@@ -33,13 +33,13 @@ const Tutorial = async () => {
           haven&apos;t been covered in a while
         </li>
         <li className="-indent-8">
-          <span className="rounded-md bg-gray-200 px-2 py-1 font-bold">
+          <span className="bg-surface-muted rounded-md px-2 py-1 font-bold">
             ⬤  larger dots
           </span>{" "}
           have had a lot of articles written in the last week
         </li>
         <li className="-indent-8">
-          <span className="rounded-md bg-gray-200 px-2 py-1 font-bold">
+          <span className="bg-surface-muted rounded-md px-2 py-1 font-bold">
             ·  smaller dots
           </span>{" "}
           represent one article or so

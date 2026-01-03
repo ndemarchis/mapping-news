@@ -21,7 +21,7 @@ const About = () => (
     </p>
     <h2 id="why">why</h2>
     <Link
-      className="group grid grid-cols-[1fr_auto] items-center gap-3 text-balance rounded-lg border-2 border-gray-500 p-4 text-gray-500 transition-all hover:border-gray-800 hover:text-gray-800 md:gap-8"
+      className="group grid grid-cols-[1fr_auto] items-center gap-3 text-balance rounded-lg border-2 border-subtle bg-surface-strong p-4 text-subtle transition-all hover:border-strong hover:text-primary md:gap-8"
       href="/presentations/ompsi-2025.pdf"
     >
       <span>
