@@ -7,6 +7,18 @@ const Tutorial = async () => {
   const locations = await fetchRecentLocations();
   return (
     <div className="box-border flex w-full flex-col items-start gap-2 p-4 font-display mo:p-8">
+      <div className="mb-2 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-3 text-sm text-[var(--color-text-subtle)]">
+        <span className="font-semibold text-[var(--color-text)]">this site is indefinitely unmaintained.</span>{" "}
+        data feeds may run sporadically or not at all.{" "}
+        <a
+          href="https://nickdemarchis.com/posts/mapping-news-pause"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[var(--color-accent)] underline underline-offset-2 hover:text-[var(--color-accent-strong)]"
+        >
+          read more
+        </a>
+      </div>
       <p className="text-2xl font-bold">
         select a location on the map to get started...
       </p>

@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 import Navbar from "@/components/layout/navbar";
 import { Providers } from "./providers";
+import DeprecationDialog from "@/components/shared/deprecation-dialog";
 
 export const metadata: Metadata = {
   title: "mapping.news",
@@ -53,6 +54,7 @@ export default async function RootLayout({
           <main>{children}</main>
           <Footer />
           <VercelAnalytics />
+          <DeprecationDialog />
         </Providers>
       </body>
     </html>
