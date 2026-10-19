@@ -49,3 +49,7 @@ next-env.d.ts
 
 /cache/
 /local_cache/
+
+# static snapshot of Supabase data (see actions/exportStaticData.py)
+/data
+.env*

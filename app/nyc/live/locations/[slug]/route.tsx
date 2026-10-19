@@ -1,5 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
-import { Database } from "../../database.types";
+import { readFile } from "fs/promises";
+import path from "path";
 
 export const revalidate = 600;
 
@@ -9,6 +9,8 @@ export async function GET(
 ) {
   const { slug } = await params;
 
+  // SUNSET: Supabase query commented out; reads data/article-relations.json
+  /*
   const supabase = createClient<Database>(
     process.env.SUPABASE_URL || "",
     process.env.SUPABASE_API_KEY || "",
@@ -29,4 +31,9 @@ export async function GET(
   }
 
   return Response.json(data.filter(Boolean));
+  */
+  const all = JSON.parse(
+    await readFile(path.join(process.cwd(), "data", "article-relations.json"), "utf8"),
+  ) as Record<string, unknown[]>;
+  return Response.json(all[slug] ?? []);
 }

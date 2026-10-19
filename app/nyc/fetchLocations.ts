@@ -1,6 +1,9 @@
 "use server";
 
-import { createClient, PostgrestError } from "@supabase/supabase-js";
+import { readFile } from "fs/promises";
+import path from "path";
+// SUNSET: Supabase calls commented out; serving static snapshot from data/ (see actions/exportStaticData.py)
+// import { createClient, PostgrestError } from "@supabase/supabase-js";
 import { Database } from "@/app/nyc/live/database.types";
 
 import { ModifiedFeatureCollection, NullableLocation } from "@/app/nyc/types";
@@ -10,6 +13,7 @@ import {
   getDotSizeFactor,
 } from "@/app/nyc/live/locations/utils";
 
+/*
 const getDataRecursiveCurry =
   (supabase: ReturnType<typeof createClient<Database>>) =>
   async (
@@ -45,14 +49,21 @@ const getDataRecursiveCurry =
 
     return { data, error };
   };
+*/
 
 export async function fetchLocations(): Promise<ModifiedFeatureCollection> {
+  /*
   const supabase = createClient<Database>(
     process.env.SUPABASE_URL || "",
     process.env.SUPABASE_API_KEY || "",
   );
 
   const { data, error } = await getDataRecursiveCurry(supabase)();
+  */
+  const data = JSON.parse(
+    await readFile(path.join(process.cwd(), "data", "locations.json"), "utf8"),
+  ) as NullableLocation[];
+  const error = null as { message: string } | null;
 
   if (!data) {
     return {

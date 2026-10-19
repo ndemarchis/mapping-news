@@ -59,7 +59,6 @@ const ArticlesWrapper = ({ articles, placeId }: Props) => {
         )}
         <div className="flex flex-col gap-1 overflow-y-scroll p-2 mo:px-4">
           {articles?.map((article, i) => (
-            // @ts-expect-error
             <ArticleEntry key={i} article={article} />
           ))}
           {articles?.length === 20 && (

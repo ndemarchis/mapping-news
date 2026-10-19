@@ -1,11 +1,12 @@
 "use server";
-import { createClient } from "@supabase/supabase-js";
-import { PostgrestSingleResponse } from "@supabase/postgrest-js";
+import { readFile } from "fs/promises";
+import path from "path";
 import { Database } from "@/app/nyc/live/database.types";
 type Article = Database["public"]["Tables"]["articles"]["Row"] & {
   location_name: string;
 };
 
+// SUNSET: Supabase call commented out below; reads data/articles-by-place.json
 const DEFAULT_PAGE_SIZE = 20;
 
 export const fetchArticlesForPlace = async ({
@@ -19,6 +20,7 @@ export const fetchArticlesForPlace = async ({
     return null;
   }
 
+  /*
   const supabase = createClient<Database>(
     process.env.SUPABASE_URL || "",
     process.env.SUPABASE_API_KEY || "",
@@ -43,7 +45,15 @@ export const fetchArticlesForPlace = async ({
     console.error(error);
     return;
   }
+  */
+  const all = JSON.parse(
+    await readFile(path.join(process.cwd(), "data", "articles-by-place.json"), "utf8"),
+  ) as Record<string, Article[]>;
+  const articles = all[placeId] ?? [];
+  return loadAll ? articles : articles.slice(0, DEFAULT_PAGE_SIZE);
+};
 
+/*
   const toReturn = data
     .map((relation) => ({
       ...relation.articles,
@@ -58,3 +68,4 @@ export const fetchArticlesForPlace = async ({
 
   return toReturn;
 };
+*/
